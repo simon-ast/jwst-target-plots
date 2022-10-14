@@ -1,0 +1,5 @@
+Target Name	Mass [MJ]	Mass [ME]	SMA [au]	Host	Instrument	EAP [mon]	Proposal ID	Status	Type
+HD 80606 b	4.1641	1323.23	0.4603	G5	MIRI / LRS	12	2008		Phase Curve
+HD 189733 b	1.1380	361.62	0.0310	K2	MIRI / LRS	12	2021	Partial	Eclipse
+WASP 166 b	0.1020	32.41	0.0668	F9	NIRISS / SOSS	12	2062		Transit
+WASP 166 b	0.1020	32.41	0.0668	F9	NIRSpec / BOTS	12	2062		Transit
