@@ -1,45 +1,49 @@
-# Pseudocode
-
-"""
-Read in data from target list
-    - Collect the full target list, and set e.g. mass boundaries
-    - Make each target its own object (class), storing
-        - Target name
-        - Target mass
-        - Target radius
-        - Host SpT
-        - Host temperature (?)
-
-Calculate HZ with easy equation (luminosity scaling) -> 0.77 and 1.77 scaling factors (Kasting?)
-    - Kopparapu et al. with conservative estimates maybe? Or optimistic
-    - Kopparapu need temperature and luminosity as stellar parameters
-
-PLOTTING:
-SpT (Temp) vs. distance with marked area for HZ
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
+import util as u
 
-class TargetList:
-    def __init__(self, raw_array) -> None:
-        self.names = raw_array[:, 0]
-        self.mass_me = np.array(raw_array[:, 2], dtype=float)
-        self.dist_au = np.array(raw_array[:, 3], dtype=float)
-        self.host_spt = raw_array[:, 4]
+# GLOBALS
+INPUT_DATA = "JWST_Cycle1_Target.csv"
+#INPUT_DATA = "test_data.dat"
 
 
-def hz_kasting(stellar_lum):
-    solar_lum = 0
-    scaled_lum = np.sqrt(stellar_lum / solar_lum)
+def main():
+    target_list = u.dict_from_tar_list(INPUT_DATA)
+    target_keys = list(target_list.keys())
+    print(f"Available keys are {target_keys}\n")
 
-    inner_bound = scaled_lum * 0.77
-    outer_bound = scaled_lum * 1.77
+    # Make dictionary with unique entries (planets)
+    u.make_dict_unique(target_list)
 
+    # Filter out non-available entries
+    u.check_nans(target_list)
 
-TEST_DATA = "test_data.dat"
-full_array = np.genfromtxt(TEST_DATA, dtype=str, delimiter="\t", skip_header=1)
-print(full_array[:, :5])
+    # Sort for super-Earths and mini-Neptunes
+    new_indices1 = np.where(target_list["Radius [RE]"] <= 4.)[0]
+    u.red_total_dict(target_list, new_indices1)
+    new_indices2 = np.where(target_list["Radius [RE]"] > 0.)[0]
+    u.red_total_dict(target_list, new_indices2)
 
-cycle1_targets = TargetList(full_array)
-print(cycle1_targets.mass_me)
+    # Plotting
+    u.rc_setup()
+    fig, ax = plt.subplots(figsize=(12, 8))
+
+    # Target parameters
+    ax.scatter(target_list["SMA [au]"], target_list["Teff [K]"])
+
+    for i in range(len(target_list["Target Name"])):
+        ax.annotate(target_list["Target Name"][i], (target_list["SMA [au]"][i], target_list["Teff [K]"][i]))
+
+    temp = np.linspace(2600, 7200, 5000)
+    hz_bounds = u.plotable_hz_bounds(temp = temp)
+    ax.fill_betweenx(temp, x1=hz_bounds["oi"], x2=hz_bounds["oo"], color="tab:green", label="OHz (Kopparapu et al. 2013)")
+    ax.fill_betweenx(temp, x1=hz_bounds["ci"], x2=hz_bounds["co"], color="tab:orange", label="CHz (Kopparapu et al. 2013)")
+
+    ax.set(xscale="log", xlabel="a [au]", ylabel="T$_{eff}$ (Host) [K]")
+
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig("target_list.png", dpi=300)
+
+if __name__ == "__main__":
+    main()
