@@ -33,7 +33,7 @@ def main():
     # Plotting
     u.rc_setup()
     p.plot_target_list(target_list)
-    plt.savefig(f"{PLOT_DIR}/target_list.png", dpi=300)
+    plt.savefig(f"{PLOT_DIR}/cycle1_targets.png", dpi=300)
 
 
 if __name__ == "__main__":
