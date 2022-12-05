@@ -1,10 +1,10 @@
 import sys
-import os
 import numpy as np
 
 DATA_ROOT = f"{sys.path[0]}/eureka_spectra"
 FILE_NAME = "ERS1366_wasp39b"
 FILE_EXT = "txt"
+
 
 def main():
     """DOC!"""

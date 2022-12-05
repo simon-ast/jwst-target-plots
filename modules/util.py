@@ -1,6 +1,6 @@
-from cmath import nan
 import numpy as np
 import matplotlib as mpl
+import pandas as pd
 
 
 def rc_setup():
@@ -23,7 +23,7 @@ def rc_setup():
     mpl.rcParams["axes.labelsize"] = "large"
 
 
-def dict_from_tar_list(filename):
+def dict_cycle1_targets(filename):
     # Read file
     full_array = np.genfromtxt(filename, dtype=str, delimiter=",")
     column_number = len(full_array[0])
@@ -48,6 +48,20 @@ def dict_from_tar_list(filename):
                 pass
 
     return target_set
+
+
+def dict_cycle2_targets(filename):
+    """DOC!"""
+    # Read as pandas data frame
+    data = pd.read_csv(filename, delimiter=",")
+
+    # Fill empty values with 0
+    data.fillna(0, inplace=True)
+
+    # Create additional column with planet name
+    data["planet_name"] = data["star"] + data["planet"]
+
+    return data
 
 
 def fill_arr(str_array, filler):

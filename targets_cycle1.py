@@ -1,16 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import util as u
-import plotting as p
+import modules.util as u
+import modules.plotting as p
 
 # GLOBALS
 INPUT_DATA = "data/JWST_Cycle1_Targets.csv"
-# INPUT_DATA = "test_data.dat"
+PLOT_DIR = "plots/"
 
 
 def main():
-    target_list = u.dict_from_tar_list(INPUT_DATA)
-    target_keys = list(target_list.keys())
+    target_list = u.dict_cycle1_targets(INPUT_DATA)
 
     # Sort for Transit Observations. Do this first, as making the
     # dictionary unique might remove transit observations and leave e.g.
@@ -34,7 +33,7 @@ def main():
     # Plotting
     u.rc_setup()
     p.plot_target_list(target_list)
-    plt.savefig("target_list.png", dpi=300)
+    plt.savefig(f"{PLOT_DIR}/target_list.png", dpi=300)
 
 
 if __name__ == "__main__":
