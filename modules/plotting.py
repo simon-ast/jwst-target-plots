@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import util as u
 from matplotlib.lines import Line2D
+import modules.util as u
 
 
 def plot_target_list(target_list):
     """Plotting routine for target dictionary"""
 
-    fig, ax = plt.subplots(figsize=(8.5, 7))
+    fig, ax = plt.subplots(figsize=(10, 7))
 
     # Scalable marker size by planet radius
     marker_size = 4 * target_list["Radius [RE]"]
