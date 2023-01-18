@@ -1,3 +1,3 @@
-Name	Mass [Me]	Radius [Re]	Host Teff [K]	Host L [log(Lsun)] SMA [au]
-HD 260655b	2.14	1.24	3803	-1.44	0.02933
-HD 260655c	3.09	1.53	3803	-1.44	0.04749
+Name	Mass [Me]	Radius [Re]	Host Teff [K]	Host L [log(Lsun)] SMA [au] Teq [K]
+HD 260655b	2.14	1.24	3803	-1.44	0.02933	709
+HD 260655c	3.09	1.53	3803	-1.44	0.04749	557
