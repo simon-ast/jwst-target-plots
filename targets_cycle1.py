@@ -23,13 +23,23 @@ def main():
 
     # Plotting cycle 1 targets, potential new target and HZ
     u.rc_setup()
-    fig, ax = p.plot_backdrop()
+    fig, ax = p.plot_backdrop(hz_indicator="dashed")
     p.plot_target_list(data_set, fig, ax)
 
     # Proposal target and mercury parameters
+    # TODO: Annotations for HD System targets
     ax.scatter(c2_target["sma"], c2_target["Teff"], c=c2_target["Teq"],
                vmin=100, vmax=2000, cmap=plt.cm.get_cmap('RdYlBu').reversed(),
                edgecolor="black")
+
+    # Annotations
+    x_s, y_s = (c2_target["sma"][0], c2_target["Teff"][0])
+    ax.annotate("HD 260655", (x_s, y_s * 1.05))
+
+    planet = ["b", "c"]
+    for i in range(2):
+        x, y = (c2_target["sma"][i], c2_target["Teff"][i])
+        ax.annotate(planet[i], (x * 1.065, y * 1.015))
 
     ax.scatter(0.387, 5773, c="black", marker="P")
 

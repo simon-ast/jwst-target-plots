@@ -11,22 +11,34 @@ E_MARKER = "^"
 E_COLOUR = "coral"
 
 
-def plot_backdrop():
+def plot_backdrop(hz_indicator: str):
     """General plot setup with HZ boundaries"""
     fig, ax = plt.subplots(figsize=(10, 5.8))
 
     temperature = np.linspace(2600, 6000, 5000)
     hz_bounds = u.plotable_hz_bounds(temp=temperature)
 
-    # Optimistic boundaries from Kopparapu et al. 2013 (for 1Me)
-    ax.fill_betweenx(temperature, x1=hz_bounds["oi"], x2=hz_bounds["oo"],
-                     color="tab:green", label="OHz (Kopparapu et al. 2013)",
-                     alpha=0.5)
+    if hz_indicator == "area":
+        # Optimistic boundaries from Kopparapu et al. 2013 (for 1Me)
+        ax.fill_betweenx(temperature, x1=hz_bounds["oi"], x2=hz_bounds["oo"],
+                         color="tab:green", alpha=0.5,
+                         label="OHz (Kopparapu et al. 2013)")
 
-    # Conservative boundaries from (see above)
-    ax.fill_betweenx(temperature, x1=hz_bounds["ci"], x2=hz_bounds["co"],
-                     color="tab:orange", label="CHz (Kopparapu et al. 2013)",
-                     alpha=0.5)
+        # Conservative boundaries from (see above)
+        ax.fill_betweenx(temperature, x1=hz_bounds["ci"], x2=hz_bounds["co"],
+                         color="tab:orange", alpha=0.5,
+                         label="CHz (Kopparapu et al. 2013)")
+
+    elif hz_indicator == "dashed":
+        # Optimistic bounds
+        ax.plot(hz_bounds["oi"], temperature, color="tab:green",
+                ls="--", label="OHz (Kopparapu et al. 2013)")
+        ax.plot(hz_bounds["oo"], temperature, color="tab:green", ls="--")
+
+        # Conservative bounds
+        ax.plot(hz_bounds["ci"], temperature, color="tab:orange",
+                ls="--", label="CHz (Kopparapu et al. 2013)")
+        ax.plot(hz_bounds["co"], temperature, color="tab:orange", ls="--")
 
     ax.set(xscale="log", xlabel="SMA [au]",
            ylabel="$T_\\mathrm{eff, Host}$ [K]",
@@ -36,7 +48,10 @@ def plot_backdrop():
 
 
 def plot_target_list(target_list, fig, ax):
-    """DOCSTRING"""
+    """
+    Plot transit and eclipse targets with T_eq as colormap.
+    Overlapping markers when both observation types are present.
+    """
     # Setup for colourmap
     cmap = plt.cm.get_cmap('RdYlBu').reversed()
 
