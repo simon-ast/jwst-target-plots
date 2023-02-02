@@ -10,4 +10,4 @@ Exemplary output for Cycle 1 targets:
 
 ![Cycle 1 Targets](plots/cycle1_targets.png)
 
-Additional: `spectrum_conversin` can take care of formatting *Eureka!* spectra into a TauREx3 readable format.
+Additional: `spectrum_conversion` can take care of formatting *Eureka!* spectra into a TauREx3 readable format.
