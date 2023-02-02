@@ -45,7 +45,7 @@ def main():
 
     plt.legend(framealpha=0.)
     plt.tight_layout()
-    plt.savefig(f"{PLOT_DIR}/cycle1_targets.pdf")
+    plt.savefig(f"{PLOT_DIR}/cycle1_targets.png", dpi=600)
 
 
 if __name__ == "__main__":

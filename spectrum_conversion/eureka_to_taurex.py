@@ -2,7 +2,7 @@ import sys
 import numpy as np
 
 DATA_ROOT = f"{sys.path[0]}/eureka_spectra"
-FILE_NAME = "eureka_wasp39b"
+FILE_NAME = "eureka_trappist1g_visit7"
 FILE_EXT = "txt"
 
 
