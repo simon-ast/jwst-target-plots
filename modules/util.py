@@ -1,6 +1,8 @@
+from copy import deepcopy
 import numpy as np
-import matplotlib as mpl
 import pandas as pd
+import matplotlib as mpl
+from typing import Union
 
 
 def rc_setup():
@@ -19,11 +21,37 @@ def rc_setup():
     mpl.rcParams["ytick.minor.visible"] = "True"
     mpl.rcParams["ytick.right"] = "True"
 
+    mpl.rcParams["lines.markersize"] = 10
+
     mpl.rcParams["axes.linewidth"] = 1.5
     mpl.rcParams["axes.labelsize"] = "large"
 
 
-def dict_cycle1_targets(filename):
+def cycle2_proposal(filename: str) -> dict:
+    """
+    Generates HD260655 b and c parameters, taken from the NASA exoplanet
+    archive. Data file is stored in 'data/'
+    """
+    data = np.genfromtxt(filename, dtype=str, delimiter="\t", skip_header=1)
+
+    # Split the data and turn into dictionary
+    return {
+        "name": data[:, 0],
+        "Mass [Me]": np.array(data[:, 1], dtype=float),
+        "Radius [Re]": np.array(data[:, 2], dtype=float),
+        "Teff": np.array(data[:, 3], dtype=float),
+        "log(L)": np.array(data[:, 4], dtype=float),
+        "sma": np.array(data[:, 5], dtype=float),
+        "Teq": np.array(data[:, 6], dtype=float)
+    }
+
+
+def dict_cycle1_targets(filename: str) -> dict:
+    """
+    Generates a keyed dictionary from the .csv file containing all
+    targets from cycle 1 GO/GTO/DD-ERS. This can be reduced by e.g.
+    planetary radius later on.
+    """
     # Read file
     full_array = np.genfromtxt(filename, dtype=str, delimiter=",")
     column_number = len(full_array[0])
@@ -50,21 +78,45 @@ def dict_cycle1_targets(filename):
     return target_set
 
 
-def dict_cycle2_targets(filename):
-    """DOC!"""
-    # Read as pandas data frame
-    data = pd.read_csv(filename, delimiter=",")
+def cycle1_selection(target_list_raw: dict, obs_type: str) -> dict:
+    """
+    Changes the dictionary target list of JWST cycle 1 targets by
+    throwing out:
+        1. Only 'obs_type' observations
+        2. Duplicate entries
+        3. Targets with missing values (this is why GJ 4102 b is missing)
+        4. Only including sub-Neptune sized planets (<= 4 R_e)
+    """
+    # Make a copy of input to return
+    target_list = deepcopy(target_list_raw)
 
-    # Fill empty values with 0
-    data.fillna(0, inplace=True)
+    # Sort for Transit Observations. Do this first, as making the
+    # dictionary unique might remove transit observations and leave e.g.
+    # eclipse observations of the same planet
+    ind_transit = np.where(target_list["Type"] == obs_type)
+    red_total_dict(target_list, ind_transit)
 
-    # Create additional column with planet name
-    data["planet_name"] = data["star"] + data["planet"]
+    # Make dictionary with unique entries (planets)
+    make_dict_unique(target_list)
 
-    return data
+    # Filter out non-available entries
+    check_nans(target_list)
+
+    # Sort for super-Earths and mini-Neptunes
+    ind_upperrad = np.where(target_list["Radius [RE]"] <= 3.)[0]
+    red_total_dict(target_list, ind_upperrad)
+
+    ind_lowerrad = np.where(target_list["Radius [RE]"] > 0.)[0]
+    red_total_dict(target_list, ind_lowerrad)
+
+    return target_list
 
 
-def fill_arr(str_array, filler):
+def fill_arr(str_array: np.array, filler: Union[str, float, int]):
+    """
+    Helper function: fills empty entries in array with predefined filler
+    value.
+    """
     for i in range(len(str_array)):
         if str_array[i] == "":
             str_array[i] = filler
@@ -72,7 +124,10 @@ def fill_arr(str_array, filler):
     return str_array
 
 
-def red_total_dict(target_dict, index_list):
+def red_total_dict(target_dict: dict, index_list: np.array) -> dict:
+    """
+    Reduces all keyed entries of a dictionary by a given index list.
+    """
     dict_keys = list(target_dict.keys())
 
     # Reduce all dictionary entries
@@ -82,7 +137,11 @@ def red_total_dict(target_dict, index_list):
     return target_dict
 
 
-def make_dict_unique(target_dict):
+def make_dict_unique(target_dict: dict) -> dict:
+    """
+    Reduces a given dictionary by duplicate entries, looping through all
+    dictionary keys.
+     """
     dict_keys = list(target_dict.keys())
 
     # Find unique indices by target name (first key)
@@ -95,9 +154,11 @@ def make_dict_unique(target_dict):
     return target_dict
 
 
-def check_nans(target_dict):
+def check_nans(target_dict: dict) -> dict:
+    """Reduces a given dictionary by NaN-entries."""
     dict_keys = list(target_dict.keys())
 
+    # TODO: Numpy throws a FutureWarning here
     by_column = [list(np.where(target_dict[key] != 0.)[0])
                  for key in dict_keys]
     nan_ind = np.unique(np.array(sum(by_column, [])))
@@ -109,11 +170,53 @@ def check_nans(target_dict):
     return target_dict
 
 
+def combine_transit_eclipse(transit_dict, eclipse_dict):
+    """Specifically to combine transit and eclipse observations"""
+    transit_len = len(transit_dict["Target Name"])
+    eclipse_len = len(eclipse_dict["Target Name"])
+
+    transit_dict["Transit"] = np.ones(transit_len)
+    transit_dict["Eclipse"] = np.zeros(transit_len)
+
+    eclipse_dict["Transit"] = np.zeros(eclipse_len)
+    eclipse_dict["Eclipse"] = np.ones(eclipse_len)
+
+    # DOCSTRING
+    eclipse_remove = []
+
+    for name in eclipse_dict["Target Name"]:
+        if name in transit_dict["Target Name"]:
+
+            transit_idx = np.where(transit_dict["Target Name"] == name)[0]
+            transit_dict["Eclipse"][transit_idx] = 1
+
+            eclipse_remove.append(
+                np.where(eclipse_dict["Target Name"] == name)[0][0]
+            )
+
+    # Remove duplicate entries from eclipse dictionary
+    for key, value in eclipse_dict.items():
+        eclipse_dict[key] = np.delete(eclipse_dict[key], eclipse_remove)
+
+    # Use pandas data frames from now on
+    transit_frame = pd.DataFrame.from_dict(transit_dict)
+    eclipse_frame = pd.DataFrame.from_dict(eclipse_dict)
+
+    # Generate final full frame
+    full_frame = pd.concat([transit_frame, eclipse_frame],
+                           ignore_index=True)
+
+    return full_frame
+
+
 def plotable_hz_bounds(temp=np.linspace(2600, 7200, 5000),
-                       lbol=np.linspace(0.01, 1, 5000)):
+                       lbol=np.linspace(0.01, 1, 5000)) -> dict:
+    """Returns a dictionary of inner and outer HZ boundary distances."""
     bounds = ["oi", "ci", "co", "oo"]
-    hz_bounds = {key: habitable_zone_distance(temp, lbol, key)
-                 for key in bounds}
+    hz_bounds = {
+        key: habitable_zone_distance(temp, lbol, key)
+        for key in bounds
+    }
 
     return hz_bounds
 
