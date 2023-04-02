@@ -27,58 +27,7 @@ def rc_setup():
     mpl.rcParams["axes.labelsize"] = "large"
 
 
-def cycle2_proposal(filename: str) -> dict:
-    """
-    Generates HD260655 b and c parameters, taken from the NASA exoplanet
-    archive. Data file is stored in 'data/'
-    """
-    data = np.genfromtxt(filename, dtype=str, delimiter="\t", skip_header=1)
-
-    # Split the data and turn into dictionary
-    return {
-        "name": data[:, 0],
-        "Mass [Me]": np.array(data[:, 1], dtype=float),
-        "Radius [Re]": np.array(data[:, 2], dtype=float),
-        "Teff": np.array(data[:, 3], dtype=float),
-        "log(L)": np.array(data[:, 4], dtype=float),
-        "sma": np.array(data[:, 5], dtype=float),
-        "Teq": np.array(data[:, 6], dtype=float)
-    }
-
-
-def dict_cycle1_targets(filename: str) -> dict:
-    """
-    Generates a keyed dictionary from the .csv file containing all
-    targets from cycle 1 GO/GTO/DD-ERS. This can be reduced by e.g.
-    planetary radius later on.
-    """
-    # Read file
-    full_array = np.genfromtxt(filename, dtype=str, delimiter=",")
-    column_number = len(full_array[0])
-
-    # Fill up empty array spots
-    for i in range(len(full_array)):
-        full_array[i] = fill_arr(full_array[i], 0.)
-
-    # First array element is list of headers
-    headers = full_array[0]
-    values = np.transpose(full_array[1:])
-
-    # Create dictionary
-    target_set = {headers[i]: values[i] for i in range(column_number)}
-
-    # Make all numbers value arrays into float arrays
-    for key in target_set.keys():
-        if key != "EAP [mon]":
-            try:
-                target_set[key] = np.array(target_set[key], dtype=float)
-            except ValueError:
-                pass
-
-    return target_set
-
-
-def cycle1_selection(target_list_raw: dict, obs_type: str) -> dict:
+def cycle1_selection(target_df: pd.DataFrame, obs_type: str) -> pd.DataFrame:
     """
     Changes the dictionary target list of JWST cycle 1 targets by
     throwing out:
@@ -88,28 +37,29 @@ def cycle1_selection(target_list_raw: dict, obs_type: str) -> dict:
         4. Only including sub-Neptune sized planets (<= 4 R_e)
     """
     # Make a copy of input to return
-    target_list = deepcopy(target_list_raw)
+    # target_list = deepcopy(target_list_raw)
+    list_obsonly = target_df.loc[target_df["Type"] == obs_type]
 
-    # Sort for Transit Observations. Do this first, as making the
-    # dictionary unique might remove transit observations and leave e.g.
-    # eclipse observations of the same planet
-    ind_transit = np.where(target_list["Type"] == obs_type)
-    red_total_dict(target_list, ind_transit)
+    # Make the data frame unique and filter out NaN values from
+    # important columns
+    unique_obsonly = list_obsonly.drop_duplicates(
+        subset=['Target Name', 'EAP [mon]']
+    )
 
-    # Make dictionary with unique entries (planets)
-    make_dict_unique(target_list)
+    print(f"{len(unique_obsonly)} targets before value drop!\n ")
 
-    # Filter out non-available entries
-    check_nans(target_list)
+    checknan_obsonly = unique_obsonly.dropna(
+        subset=['Radius [RE]', 'Teff [K]', 'SMA [au]']
+    )
 
     # Sort for super-Earths and mini-Neptunes
-    ind_upperrad = np.where(target_list["Radius [RE]"] <= 3.)[0]
-    red_total_dict(target_list, ind_upperrad)
+    #ind_upperrad = np.where(target_list["Radius [RE]"] <= 3.)[0]
+    #red_total_dict(target_list, ind_upperrad)
 
-    ind_lowerrad = np.where(target_list["Radius [RE]"] > 0.)[0]
-    red_total_dict(target_list, ind_lowerrad)
+    #ind_lowerrad = np.where(target_list["Radius [RE]"] > 0.)[0]
+    #red_total_dict(target_list, ind_lowerrad)
 
-    return target_list
+    return checknan_obsonly
 
 
 def fill_arr(str_array: np.array, filler: Union[str, float, int]):

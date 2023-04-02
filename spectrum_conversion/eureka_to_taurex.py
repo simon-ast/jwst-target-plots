@@ -1,8 +1,9 @@
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 
-DATA_ROOT = f"{sys.path[0]}/eureka_spectra"
-FILE_NAME = "eureka_trappist1g_visit7"
+DATA_ROOT = f"{sys.path[0]}/"
+FILE_NAME = "wasp39b-cut-60bins"
 FILE_EXT = "txt"
 
 
@@ -18,6 +19,9 @@ def main():
     with open(f"{FILE_NAME}_spectrum.dat", "w") as file:
         for i in range(len(wavelength)):
             file.write(f"{wavelength[i]} \t {rp2[i]} \t {rp2err[i]} \n")
+    
+    plt.scatter(wavelength, rp2)
+    plt.show()
 
 
 if __name__ == "__main__":

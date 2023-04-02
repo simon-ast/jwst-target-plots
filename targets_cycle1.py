@@ -1,52 +1,68 @@
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+import pandas as pd
 import modules.util as u
 import modules.plotting as p
 
 # GLOBALS
-INPUT_DATA = "data/cycle1_targets.csv"
+INPUT_DATA = "data/JWST_cycle1_targets.csv"
 PLOT_DIR = "plots/"
+LABEL_ADD = "Transit Targets"
 
 
 def main():
     """
-    Generates plots for Cycle 1 GO/GTO/DD-ERS targets and HD260655 b/c.
+    Generates plots for Cycle 1 GO/GTO/DD-ERS targets.
     """
-    # Potential cycle 2 target(s) of HD 260655 + Mercury data
-    c2_target = u.cycle2_proposal("data/cycle2_target.txt")
+    # Selection of cycle 1 targets
+    target_list = pd.read_csv(INPUT_DATA)
+    transit_targets_all = u.cycle1_selection(target_list, "Transit")
+    transit_targets_free = transit_targets_all.loc[
+        transit_targets_all["EAP [mon]"] == 0
+    ]
 
-    # Selection of cycle 1 sub-Neptune targets
-    target_list = u.dict_cycle1_targets(INPUT_DATA)
-    transit_targets = u.cycle1_selection(target_list, "Transit")
-    eclipse_targets = u.cycle1_selection(target_list, "Eclipse")
+    # Plotting cycle 1 targets, HZ sketches and Mercury
+    fig1, ax1 = p.plot_backdrop(hz_indicator="dashed")
+    p.plot_target_list(transit_targets_all, fig1, ax1)
 
-    data_set = u.combine_transit_eclipse(transit_targets, eclipse_targets)
-
-    # Plotting cycle 1 targets, potential new target and HZ
-    u.rc_setup()
-    fig, ax = p.plot_backdrop(hz_indicator="dashed")
-    p.plot_target_list(data_set, fig, ax)
-
-    # Proposal target and mercury parameters
-    # TODO: Annotations for HD System targets
-    ax.scatter(c2_target["sma"], c2_target["Teff"], c=c2_target["Teq"],
-               vmin=100, vmax=2000, cmap=plt.cm.get_cmap('RdYlBu').reversed(),
-               edgecolor="black")
-
-    # Annotations
-    x_s, y_s = (c2_target["sma"][0], c2_target["Teff"][0])
-    ax.annotate("HD 260655", (x_s, y_s * 1.05))
-
-    planet = ["b", "c"]
-    for i in range(2):
-        x, y = (c2_target["sma"][i], c2_target["Teff"][i])
-        ax.annotate(planet[i], (x * 1.065, y * 1.015))
-
-    ax.scatter(0.387, 5773, c="black", marker="P")
-
-    plt.legend(framealpha=0.)
+    # Custom legend
+    labels, handles = custom_legend(ax1)
+    plt.legend(labels=labels, handles=handles, framealpha=0.)
     plt.tight_layout()
-    plt.savefig(f"{PLOT_DIR}/cycle1_targets.png", dpi=600)
+    plt.savefig(f"{PLOT_DIR}/cycle1_targets_all.png", dpi=600)
+
+    # Same as above, but with EAPs overplotted
+    fig2, ax2 = p.plot_backdrop(hz_indicator="dashed")
+    p.plot_target_list(transit_targets_all, fig2, ax2)
+    restricted_tar = transit_targets_all.loc[
+        transit_targets_all["EAP [mon]"] != 0
+    ]
+    ax2.scatter(restricted_tar["SMA [au]"], restricted_tar["Teff [K]"],
+                color="tab:red", marker="x", lw=2.5)
+    labels, handles = custom_legend(ax2)
+    plt.legend(labels=labels, handles=handles, framealpha=0.)
+    plt.tight_layout()
+    plt.savefig(f"{PLOT_DIR}/cycle1_targets_eap.png", dpi=600)
+
+    # Only targets without EAPs
+    fig3, ax3 = p.plot_backdrop(hz_indicator="dashed")
+    p.plot_target_list(transit_targets_free, fig3, ax3)
+    labels, handles = custom_legend(ax3)
+    plt.legend(labels=labels, handles=handles, framealpha=0.)
+    plt.tight_layout()
+    plt.savefig(f"{PLOT_DIR}/cycle1_targets_free.png", dpi=600)
+    print(f"{len(transit_targets_free)} transit targets in this list!\n")
+
+
+def custom_legend(ax):
+    # Custom legend
+    handles, labels = ax.get_legend_handles_labels()
+    handles.append(Line2D([0], [0], marker='o', color='w', mfc='black'))
+    labels.append(LABEL_ADD)
+
+    return labels, handles
 
 
 if __name__ == "__main__":
+    u.rc_setup()
     main()

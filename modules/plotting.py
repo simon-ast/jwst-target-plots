@@ -1,19 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import modules.util as u
+import copy
 
 # PLOT GLOBALS
 T_LABEL = "Transit targets"
-T_MARKER = "s"
-T_COLOUR = "dimgrey"
-E_LABEL = "Eclipse targets"
-E_MARKER = "^"
-E_COLOUR = "coral"
+T_MARKER = "o"
 
 
 def plot_backdrop(hz_indicator: str):
     """General plot setup with HZ boundaries"""
-    fig, ax = plt.subplots(figsize=(10, 5.8))
+    fig, ax = plt.subplots(figsize=(8, 4))
 
     temperature = np.linspace(2600, 6000, 5000)
     hz_bounds = u.plotable_hz_bounds(temp=temperature)
@@ -31,43 +28,45 @@ def plot_backdrop(hz_indicator: str):
 
     elif hz_indicator == "dashed":
         # Optimistic bounds
-        ax.plot(hz_bounds["oi"], temperature, color="tab:green",
-                ls="--", label="OHz (Kopparapu et al. 2013)")
-        ax.plot(hz_bounds["oo"], temperature, color="tab:green", ls="--")
+        opt_col = "lightgreen"
+        opt_ls = "-."
+        ax.plot(hz_bounds["oi"], temperature, color=opt_col,
+                ls=opt_ls, label="OHz (Kopparapu et al. 2013)")
+        ax.plot(hz_bounds["oo"], temperature, color=opt_col, ls=opt_ls)
 
         # Conservative bounds
-        ax.plot(hz_bounds["ci"], temperature, color="tab:orange",
-                ls="--", label="CHz (Kopparapu et al. 2013)")
-        ax.plot(hz_bounds["co"], temperature, color="tab:orange", ls="--")
+        con_col = "tab:green"
+        con_ls = "--"
+        ax.plot(hz_bounds["ci"], temperature, color=con_col,
+                ls=con_ls, label="CHz (Kopparapu et al. 2013)")
+        ax.plot(hz_bounds["co"], temperature, color=con_col, ls=con_ls)
 
     ax.set(xscale="log", xlabel="SMA [au]",
-           ylabel="$T_\\mathrm{eff, Host}$ [K]",
+           ylabel="$T_\\mathrm{eff, Host}$ [K]", ylim=(2200, 8800),
            xlim=(5e-3, .7))
+
+    # Plot mercury as reference
+    ax.scatter(0.387, 5773, c="black", marker="P")
 
     return fig, ax
 
 
 def plot_target_list(target_list, fig, ax):
     """
-    Plot transit and eclipse targets with T_eq as colormap.
+    Plot transit and eclipse targets with R_p as colormap.
     Overlapping markers when both observation types are present.
     """
     # Setup for colourmap
     cmap = plt.cm.get_cmap('RdYlBu').reversed()
 
-    # Plot transit targets first
-    transit = target_list.loc[target_list["Transit"] == 1.]
-    cm = ax.scatter(transit["SMA [au]"], transit["Teff [K]"],
-                    marker=T_MARKER, label=T_LABEL,
-                    edgecolor="black",
-                    c=transit["T_eq [K]"], vmin=100, vmax=2000, cmap=cmap)
+    # Plot targets
+    cm = ax.scatter(target_list["SMA [au]"], target_list["Teff [K]"],
+                    marker=T_MARKER,
+                    edgecolor="black", s=70,
+                    c=np.log10(target_list["Radius [RE]"]),
+                    vmin=-0.15, vmax=1.3,
+                    cmap=cmap)
 
-    eclipse = target_list.loc[target_list["Eclipse"] == 1.]
-    cm2 = ax.scatter(eclipse["SMA [au]"], eclipse["Teff [K]"],
-                     marker=E_MARKER, label=E_LABEL,
-                     edgecolor="black",
-                     c=eclipse["T_eq [K]"], vmin=100, vmax=2000, cmap=cmap)
-
-    plt.colorbar(cm, label="$T_\\mathrm{eq}$ [K]")
+    plt.colorbar(cm, label="log$(R_\\mathrm{p})$ [$R_\\mathrm{E}$]")
 
     return fig, ax
