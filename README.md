@@ -6,8 +6,8 @@ Small routines to plot target parameters of JWST observational cycles.
 Exemplary output for Cycle 1 targets: 
 - SMA distance (AU) against host star effective temperature
 - Kopparapu et al. (2013) habitable zone distance for reference
-- Marker size scaled by planetary radius (see legend)
+- Marker colour-mapped by planetary radius
 
-![Cycle 1 Targets](plots/cycle1_targets.png)
+![Cycle 1 Targets](plots/cycle1_targets_all.png)
 
 Additional: `spectrum_conversion` can take care of formatting *Eureka!* spectra into a TauREx3 readable format.
