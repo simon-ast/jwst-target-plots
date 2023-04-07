@@ -9,7 +9,7 @@ TODO:
 """
 import pandas as pd
 import datetime as dt
-import typing as tp
+import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -35,7 +35,7 @@ def main():
     target_list, final_length = select_targets(
         target_list_all, eap_constraint=0,
         obstype_constr=["Transit"],
-        radius_constr=[None, None]
+        radius_constr=[None, 4]
     )
 
     # Plotting routine
@@ -65,14 +65,30 @@ def explode_df_obs_date(raw_data_frame: pd.DataFrame,
     new_frame = raw_data_frame.explode(explode_column, ignore_index=True)
 
     # Generate individual Series (assuming exploding column is date!)
-    dates = new_frame[explode_column].values
-    dates_nf = [dt.datetime.strptime(d.strip(), '%m/%d/%y').date()
-                for d in dates]
+    dates = np.array(
+        [entry.strip() for entry in new_frame[explode_column].values]
+    )
+    new_frame[explode_column] = dates
+
+    # Some observations are marked as "Long Range", meaning they are
+    # being extended into Cycle 2 due to scheduling
+    longrange = new_frame.loc[new_frame[explode_column] == "Long Range"]
+    print("\n\n The following entries have been marked as 'Long Range'\n"
+          f"{longrange}\n")
+
+    # Remove these from the data frame
+    cleaned_frame = new_frame.loc[new_frame[explode_column] != "Long Range"]
+    clean_dates = cleaned_frame[explode_column]
+
+    dates_nf = [
+        dt.datetime.strptime(d.strip(), '%m/%d/%y').date()
+        for d in clean_dates
+    ]
 
     # Replace entries for observation date in new frame
-    new_frame[explode_column] = dates_nf
+    cleaned_frame[explode_column] = dates_nf
 
-    return new_frame
+    return cleaned_frame
 
 
 def select_targets(target_df: pd.DataFrame,
@@ -80,7 +96,7 @@ def select_targets(target_df: pd.DataFrame,
                    instr_constr=None,
                    obstype_constr=None,
                    radius_constr=None):
-    """DOCSTRING!"""
+    """Data filtering for plotting routine"""
     # Select EAP constraint
     if eap_constraint is not None:
         target_df = target_df.loc[
