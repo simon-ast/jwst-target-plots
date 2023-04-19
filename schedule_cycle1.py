@@ -33,9 +33,9 @@ def main():
     )
 
     target_list, final_length = select_targets(
-        target_list_all, eap_constraint=0,
+        target_list_all, eap_constraint=12,
         obstype_constr=["Transit"],
-        radius_constr=[None, None]
+        radius_constr=[None, 4.0]
     )
 
     # Plotting routine
@@ -49,7 +49,7 @@ def main():
 
     # Final steps
     timeline_plot_cleanup(ax)
-    plt.savefig(f"plots/timeline_cycle1.png", dpi=600)
+    plt.savefig(f"plots/timeline_cycle1_sNall.png", dpi=600)
 
 
 def explode_df_obs_date(raw_data_frame: pd.DataFrame,
