@@ -33,9 +33,9 @@ def main():
     )
 
     target_list, final_length = select_targets(
-        target_list_all, eap_constraint=12,
+        target_list_all, eap_constraint=0,
         obstype_constr=["Transit"],
-        radius_constr=[None, 4.0]
+        radius_constr=[None, None]
     )
 
     # Plotting routine
@@ -49,7 +49,7 @@ def main():
 
     # Final steps
     timeline_plot_cleanup(ax)
-    plt.savefig(f"plots/timeline_cycle1_sNall.png", dpi=600)
+    plt.savefig(f"plots/timeline_cycle1.svg")
 
 
 def explode_df_obs_date(raw_data_frame: pd.DataFrame,
@@ -149,7 +149,7 @@ def indiv_target_plot(df_entry: pd.Series, ax):
 
 def timeline_plot_setup():
     """General plot setup"""
-    fig, ax = plt.subplots(figsize=(20, 8))
+    fig, ax = plt.subplots(figsize=(15, 5))
 
     # Plot labeling
     ax.set(xlabel="Date", ylabel="Target Name")
@@ -193,7 +193,8 @@ if __name__ == "__main__":
     mpl.rcParams["ytick.left"] = "False"
     mpl.rcParams["xtick.minor.bottom"] = "False"
     mpl.rcParams["xtick.minor.top"] = "False"
-    mpl.rcParams["legend.frameon"] = "False"
+    mpl.rcParams["legend.frameon"] = "True"
+    mpl.rcParams["legend.framealpha"] = 1.0
 
     print("\n\n REVISE OBS DATE ENTRIES! \n\n")
     main()

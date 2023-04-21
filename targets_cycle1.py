@@ -29,7 +29,7 @@ def main():
     labels, handles = custom_legend(ax1)
     plt.legend(labels=labels, handles=handles, framealpha=0.)
     plt.tight_layout()
-    plt.savefig(f"{PLOT_DIR}/cycle1_targets_all.png", dpi=600)
+    plt.savefig(f"{PLOT_DIR}/cycle1_targets_all.svg")
 
     # Same as above, but with EAPs overplotted
     fig2, ax2 = p.plot_backdrop(hz_indicator="dashed")
@@ -42,7 +42,7 @@ def main():
     labels, handles = custom_legend(ax2)
     plt.legend(labels=labels, handles=handles, framealpha=0.)
     plt.tight_layout()
-    plt.savefig(f"{PLOT_DIR}/cycle1_targets_eap.png", dpi=600)
+    plt.savefig(f"{PLOT_DIR}/cycle1_targets_eap.svg")
 
     # Only targets without EAPs
     fig3, ax3 = p.plot_backdrop(hz_indicator="dashed")
@@ -50,7 +50,7 @@ def main():
     labels, handles = custom_legend(ax3)
     plt.legend(labels=labels, handles=handles, framealpha=0.)
     plt.tight_layout()
-    plt.savefig(f"{PLOT_DIR}/cycle1_targets_free.png", dpi=600)
+    plt.savefig(f"{PLOT_DIR}/cycle1_targets_free.svg")
     print(f"{len(transit_targets_free)} transit targets in this list!\n")
 
 
