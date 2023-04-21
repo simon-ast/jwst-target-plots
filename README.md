@@ -13,6 +13,7 @@ Exemplary output for Cycle 1 targets:
 
 Exemplary output for Cycle 1 schedule: Individual observations of transit
 targets (current date marked by vertical dashed line)
+
 ![Cycle 1 Schedule](plots/timeline_cycle1.svg)
 
 Additional: `spectrum_conversion` can take care of formatting *Eureka!* spectra into a TauREx3 readable format.
