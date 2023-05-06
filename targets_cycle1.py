@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.lines import Line2D
 import pandas as pd
 import modules.util as u
@@ -25,11 +26,12 @@ def main():
     fig1, ax1 = p.plot_backdrop(hz_indicator="dashed")
     p.plot_target_list(transit_targets_all, fig1, ax1)
 
+
     # Custom legend
     labels, handles = custom_legend(ax1)
     plt.legend(labels=labels, handles=handles, framealpha=0.)
     plt.tight_layout()
-    plt.savefig(f"{PLOT_DIR}/cycle1_targets_all.svg")
+    plt.savefig(f"{PLOT_DIR}/cycle1_targets_et.svg")
 
     # Same as above, but with EAPs overplotted
     fig2, ax2 = p.plot_backdrop(hz_indicator="dashed")
