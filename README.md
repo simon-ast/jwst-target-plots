@@ -1,8 +1,15 @@
-# JWST Target Visualisation
+# JWST Target Visualisation (W.I.P.)
 Small routines to plot target parameters of JWST observational cycles.
 
-- `targets_cycle1.py`: Plots parameters of Cycle 1 transit spectroscopy targets, based on a personal list I created.
-- `schedule_cycle1.py`: Plots the expected individual observations during Cycle 1 (potentially filtered by e.g. planetary radius).
+- (deprecated) `targets_cycle1.py`: Plots parameters of Cycle 1 transit 
+spectroscopy targets, based on a personal list I created.
+
+- `target_parameters.py`: Plots parameters of JWST planetary targets for 
+Transmission and Emission spectroscopy (based on the lists I have created). 
+Queries the  NASA Exoplanet Archive DB to get most up-to-date parameters.
+
+- `schedule_cycle1.py`: Plots the expected individual observations during 
+Cycle 1 (potentially filtered by e.g. planetary radius).
 
 Exemplary output for Cycle 1 targets: 
 - SMA distance (AU) against host star effective temperature

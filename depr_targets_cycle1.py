@@ -5,7 +5,7 @@ import modules.util as u
 import modules.plotting as p
 
 # GLOBALS
-INPUT_DATA = "data/JWST_cycle1_targets.csv"
+INPUT_DATA = "data/JWST_cycle2_targets.csv"
 PLOT_DIR = "plots/"
 LABEL_ADD = "Transit Targets"
 
