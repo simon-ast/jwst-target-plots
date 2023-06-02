@@ -4,7 +4,7 @@ import logging as log
 import numpy as np
 
 # GLOBALS
-PS_SELECT = "pl_name, pl_orbper, pl_orbsmax, pl_rade, pl_masse, pl_eqt, " \
+PS_SELECT = "pl_name, pl_orbper, pl_orbsmax, pl_rade, pl_bmasse, pl_eqt, " \
             "st_teff"
 
 
@@ -50,9 +50,10 @@ def construct_adql_query(planet_names: np.ndarray) -> str:
     # THIS removes the trailing comma
     name_sequence = name_sequence[:-1]
 
-    # Base query: Search in the "planetary system" (or ps) table
-    base_str = f"SELECT {PS_SELECT} FROM ps "
+    # Base query: Search in the "planetary system composite"
+    # (or pscomppars) table (rather than the ps table)
+    base_str = f"SELECT {PS_SELECT} FROM pscomppars "
     query_name = f"WHERE pl_name IN ({name_sequence}) "
-    query_default_values = "AND default_flag = 1"
+    #query_default_values = "AND default_flag = 1"
 
-    return f"{base_str}{query_name}{query_default_values}"
+    return f"{base_str}{query_name}"
