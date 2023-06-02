@@ -16,7 +16,8 @@ Y_AXIS = "st_teff"
 
 def main():
     # Set up logging solution
-    log.basicConfig(filename=f'output/{sys.argv[0][:-3]}.log', filemode='w',
+    log.basicConfig(filename=f'plots/target_parameters/{sys.argv[0][:-3]}.log',
+                    filemode='w',
                     format='%(name)s - %(levelname)s - %(message)s',
                     level=log.INFO)
 
@@ -33,7 +34,7 @@ def main():
 
     # Concatenate csv and epa results (and save df for posterity)
     constructed = construct_new_df(csv_combination, epa_queried)
-    constructed.to_csv("output/epa_correlation.csv", sep="\t")
+    constructed.to_csv("plots/target_parameters/epa_correlation.csv", sep="\t")
 
     # Maybe further restrictions?
     final = constructed

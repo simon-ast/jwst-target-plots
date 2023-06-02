@@ -40,7 +40,10 @@ def plot_parameters(
         x_param: str, y_param: str,
         savename: str
 ) -> None:
-    """DOC!"""
+    """
+    Wrapper for plotting target parameters with variable x- and
+    y-parameters
+    """
     log.info(f"Plotting {x_param} against {y_param}")
 
     # SANITY CHECK: x- and y-parameters must be columns in the data frame
@@ -94,6 +97,6 @@ def fill_figure(
 def finish_figure(savename: str) -> None:
     """Clean up pyplot figure"""
     plt.tight_layout()
-    plt.savefig(f"output/{savename}.svg")
+    plt.savefig(f"plots/target_parameters/{savename}.svg")
 
     return None
