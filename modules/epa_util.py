@@ -81,9 +81,9 @@ def fill_figure(
     eclipses = specialised_df.loc[specialised_df["Type"] == "Eclipse"]
 
     ax.scatter(transits[x_param], transits[y_param], color="tab:blue",
-               marker="o")
+               marker="o", edgecolor="black")
     ax.scatter(eclipses[x_param], eclipses[y_param], color="tab:red",
-               marker=".")
+               marker=".", edgecolor="black")
 
     ax.set(xlabel=f"{x_param}", ylabel=f"{y_param}")
 
