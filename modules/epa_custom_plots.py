@@ -30,7 +30,7 @@ def plrad_steff(target_list: pd.DataFrame, savename: str) -> None:
 
     # Plot Customisation
     ax.set(
-        xlabel="a [au]", ylabel="T$_\\mathrm{eff}$ [K]",
+        xlabel="SMA [au]", ylabel="T$_\\mathrm{eff}$ [K]",
         xscale="log"
     )
 

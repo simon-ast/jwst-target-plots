@@ -1,19 +1,13 @@
-"""
-OUTLINE:
-- Name of target on y-axis
-- Date on x-axis
-- Instrument as colour-map
-
-TODO:
-- Custom legend with instrument color map
-"""
 import pandas as pd
 import datetime as dt
+import dateutil.relativedelta as daterel
 import numpy as np
+import copy as cp
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import modules.util as u
+from typing import Tuple
 
 
 # GLOBALS
@@ -32,16 +26,23 @@ def main():
         pd.read_csv(INPUT_FILE), "Observation Date(s) [MM/DD/YY]", ";"
     )
 
-    target_list, final_length = select_targets(
-        target_list_all, eap_constraint=0,
+    # Define individual desired plots
+    tc1_list = select_targets(
+        target_list_all, eap_constraint=12,
         obstype_constr=["Transit"],
-        radius_constr=[None, 4]
+        radius_constr=[None, 4.]
     )
+    wrap_schedule_plot(tc1_list, "schedule_cycle1_transit")
+
+
+def wrap_schedule_plot(select_list: pd.DataFrame, savename: str) -> None:
+    """Wrapper for plotting of selected target schedule"""
+    final_length = select_list.shape[0]
 
     # Plotting routine
     fig, ax = timeline_plot_setup()
     for idx in range(final_length):
-        indiv_target_plot(target_list.iloc[idx], ax)
+        indiv_target_plot(select_list.iloc[idx], ax)
 
     # Plot indication of current date
     today = dt.datetime.today()
@@ -49,12 +50,16 @@ def main():
 
     # Final steps
     timeline_plot_cleanup(ax)
-    plt.savefig(f"plots/timeline_cycle1.svg")
+    plt.savefig(f"plots/{savename}.svg")
+
+    return
 
 
-def explode_df_obs_date(raw_data_frame: pd.DataFrame,
-                        explode_column: str,
-                        date_delimiter: str) -> pd.DataFrame:
+def explode_df_obs_date(
+        raw_data_frame: pd.DataFrame,
+        explode_column: str,
+        date_delimiter: str
+) -> pd.DataFrame:
     """Prepare data frame by exploding observation date lists"""
     # Make sure that the date entries in the data frame are lists by
     # using string-split method with a pre-defined delimiter
@@ -77,25 +82,37 @@ def explode_df_obs_date(raw_data_frame: pd.DataFrame,
           f"{longrange}\n")
 
     # Remove these from the data frame
-    cleaned_frame = new_frame.loc[new_frame[explode_column] != "Long Range"]
+    cleaned_frame = cp.deepcopy(
+        new_frame.loc[new_frame[explode_column] != "Long Range"]
+    )
     clean_dates = cleaned_frame[explode_column]
 
-    dates_nf = [
+    # Read in datetime-versions of planned observation dates
+    dates_nf = np.array([
         dt.datetime.strptime(d.strip(), '%m/%d/%y').date()
         for d in clean_dates
-    ]
+    ])
+
+    # Correct with the EAP period
+    eap_dur = cleaned_frame["EAP [mon]"].values
+    dates_finalised = np.array([
+        dates_nf[idx] + daterel.relativedelta(months=+eap_dur[idx])
+        for idx in range(len(dates_nf))
+    ])
 
     # Replace entries for observation date in new frame
-    cleaned_frame[explode_column] = dates_nf
+    cleaned_frame[explode_column] = dates_finalised
 
     return cleaned_frame
 
 
-def select_targets(target_df: pd.DataFrame,
-                   eap_constraint=None,
-                   instr_constr=None,
-                   obstype_constr=None,
-                   radius_constr=None):
+def select_targets(
+        target_df: pd.DataFrame,
+        eap_constraint=None,
+        instr_constr=None,
+        obstype_constr=None,
+        radius_constr=None
+) -> pd.DataFrame:
     """Data filtering for plotting routine"""
     # Select EAP constraint
     if eap_constraint is not None:
@@ -105,7 +122,7 @@ def select_targets(target_df: pd.DataFrame,
 
     # Select specific instrument(s)
     # TODO: Fix instrument selection
-    #if instr_constr is not None:
+    # if instr_constr is not None:
     #    reduced_frame = target_df.loc[
     #        target_df["Instrument"].str.split(" / ")[0] in instr_constr
     #    ]
@@ -131,14 +148,13 @@ def select_targets(target_df: pd.DataFrame,
                 target_df["Radius [RE]"] <= radius_constr[1]
                 ]
 
-    # Also return length of final selection
-    entry_length = target_df.shape[0]
-
-    return target_df, entry_length
+    return target_df
 
 
-def assign_inst_colour(raw_data_frame: pd.Series,
-                       inst_key: str):
+def assign_inst_colour(
+        raw_data_frame: pd.Series,
+        inst_key: str
+) -> str:
     """Assign colour for plot based on instrument used"""
     # Instrument colour scheme
     inst_col = INSTRUMENT_COLOUR_MAP
@@ -152,20 +168,10 @@ def assign_inst_colour(raw_data_frame: pd.Series,
     return colour_key
 
 
-def indiv_target_plot(df_entry: pd.Series, ax):
-    """DOCSTRING!"""
-    # Plot parameters
-    date = df_entry["Observation Date(s) [MM/DD/YY]"]
-    name = df_entry["Target Name"]
-    colour_inst = assign_inst_colour(df_entry, "Instrument")
-
-    # Plot values and
-    ax.scatter(date, name, c=colour_inst, zorder=4)
-
-
-def timeline_plot_setup():
+def timeline_plot_setup() -> Tuple[plt.Figure, plt.Axes]:
     """General plot setup"""
-    fig, ax = plt.subplots(figsize=(15, 5))
+    # Specify a fitting figure-size
+    fig, ax = plt.subplots(figsize=(15, 6))
 
     # Plot labeling
     ax.set(xlabel="Date", ylabel="Target Name")
@@ -174,18 +180,30 @@ def timeline_plot_setup():
     return fig, ax
 
 
-def timeline_plot_cleanup(ax):
+def indiv_target_plot(df_entry: pd.Series, ax: plt.Axes) -> None:
+    """Plot individual target entry in extended data frame"""
+    # Plot parameters
+    date = df_entry["Observation Date(s) [MM/DD/YY]"]
+    name = df_entry["Target Name"]
+    colour_inst = assign_inst_colour(df_entry, "Instrument")
+
+    # Plot values and
+    ax.scatter(date, name, s=30, c=colour_inst, edgecolor="black", zorder=4)
+
+
+def timeline_plot_cleanup(ax: plt.Axes) -> None:
     """General plot cleanup"""
     # Create and place custom legend
     inst_legend = custom_legend()
-    ax.legend(handles=inst_legend, ncols=len(inst_legend))
+    ax.legend(handles=inst_legend, ncols=len(inst_legend), loc='upper center',
+              bbox_to_anchor=(0.5, +1.105), fancybox=True, shadow=True)
 
     # Last adjustments
     plt.gca().invert_yaxis()
     plt.tight_layout()
 
 
-def custom_legend():
+def custom_legend() -> list:
     """Create a custom instrument color legend to include in the plot"""
     handles = list(INSTRUMENT_COLOUR_MAP.keys())
     colours = [INSTRUMENT_COLOUR_MAP[entry] for entry in handles]
@@ -212,5 +230,4 @@ if __name__ == "__main__":
     mpl.rcParams["legend.frameon"] = "True"
     mpl.rcParams["legend.framealpha"] = 1.0
 
-    print("\n\n REVISE OBS DATE ENTRIES! \n\n")
     main()

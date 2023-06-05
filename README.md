@@ -1,26 +1,20 @@
-# JWST Target Visualisation (W.I.P.)
+# JWST Target Visualisation
 Small routines to plot target parameters of JWST observational cycles.
-
-- (deprecated) `targets_cycle1.py`: Plots parameters of Cycle 1 transit 
-spectroscopy targets, based on a personal list I created.
 
 - `target_parameters.py`: Plots parameters of JWST planetary targets for 
 Transmission and Emission spectroscopy (based on the lists I have created). 
 Queries the  NASA Exoplanet Archive DB to get most up-to-date parameters.
 
-- `schedule_cycle1.py`: Plots the expected individual observations during 
-Cycle 1 (potentially filtered by e.g. planetary radius).
+- `target_schedule.py`: Plots the expected individual observations 
+(potentially filtered by e.g. planetary radius).
 
-Exemplary output for Cycle 1 targets: 
+Exemplary output: 
 - SMA distance (AU) against host star effective temperature
-- Kopparapu et al. (2013) habitable zone distance for reference
 - Marker colour-mapped by planetary radius
 
-![Cycle 1 Targets](plots/cycle1_targets_all.svg)
+![Cycle 1 Targets](plots/targets_all.svg)
 
 Exemplary output for Cycle 1 schedule: Individual observations of transit
 targets (current date marked by vertical dashed line)
 
-![Cycle 1 Schedule](plots/timeline_cycle1.svg)
-
-Additional: `spectrum_conversion` can take care of formatting *Eureka!* spectra into a TauREx3 readable format.
+![Cycle 1 Schedule](plots/schedule_cycle1_transit.svg)
