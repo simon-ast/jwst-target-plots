@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import modules.epa_query as eq
 import modules.epa_util as eu
+import modules.epa_custom_plots as ec
 import logging as log
 import sys
 import numpy as np
@@ -24,8 +25,10 @@ def main():
     # Reading in the csv-list information
     file_nc1 = "JWST_cycle1_targets.csv"
     cycle1 = read_target_csv(DATA_DIR, file_nc1)
+    cycle1["ObsCycle"] = "Cycle 1"
     file_nc2 = "JWST_cycle2_targets.csv"
     cycle2 = read_target_csv(DATA_DIR, file_nc2)
+    cycle2["ObsCycle"] = "Cycle 2"
     csv_combination = join_df([cycle1, cycle2])
 
     # Querying the NASA EPA with target names from the csv list
@@ -37,10 +40,15 @@ def main():
     constructed.to_csv("plots/target_parameters/epa_correlation.csv", sep="\t")
 
     # Maybe further restrictions?
-    final = constructed
-    #final = constructed.loc[constructed["Type"] == "Transit"]
+    #final = constructed
+    final = constructed.loc[constructed["Type"] == "Transit"]
 
     # PLOT RESULTS
+    # All targets
+    log.info("ALL TARGETS")
+    eu.plot_parameters(final, x_param=X_AXIS, y_param=Y_AXIS,
+                       savename="all")
+
     # Sub-neptunes
     log.info("SUB-NEPTUNES")
     sn_df = final.loc[final["pl_rade"] <= 4.]
@@ -52,6 +60,9 @@ def main():
     hj_df = final.loc[final["pl_rade"] > 4.]
     eu.plot_parameters(hj_df, x_param=X_AXIS, y_param=Y_AXIS,
                        savename="superneptunes")
+
+    # CREATE CUSTOM PLOTS
+    ec.plrad_steff(final, "targets_all")
 
 
 def read_target_csv(data_dir: str, filename: str) -> pd.DataFrame:

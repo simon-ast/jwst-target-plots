@@ -26,9 +26,13 @@ root - INFO - The following 12 targets could not be queried in the EPA:
  'TOI 836 b' 'TOI 836 c' 'TOI 910.01' 'TOI-3984 b' 'TOI-5293 b'
  'TOI-741.01']
 
+root - INFO - ALL TARGETS
+root - INFO - Plotting pl_orbsmax against st_teff
+root - INFO - Not plotting ['HIP 67522 b' 'TOI-1468 c'] due to missing values!
+
 root - INFO - SUB-NEPTUNES
 root - INFO - Plotting pl_orbsmax against st_teff
-root - INFO - Not plotting ['TOI-1468 b' 'TOI-1468 c'] due to missing values!
+root - INFO - Not plotting ['TOI-1468 c'] due to missing values!
 
 root - INFO - SUPER-NEPTUNES
 root - INFO - Plotting pl_orbsmax against st_teff
