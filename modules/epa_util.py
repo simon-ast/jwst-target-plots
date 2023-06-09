@@ -21,8 +21,8 @@ def constrain_plotting_df(
                                             ignore_index=True)
 
     # Constrain to available values
-    constrained_df = specialised_df.dropna(subset=column_list,
-                                           ignore_index=True)
+    constrained_df = specialised_df.dropna(subset=column_list)
+                                           #ignore_index=True)
 
     # Check for remaining empty values and log missing targets
     dropped_df = specialised_df.loc[

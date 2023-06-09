@@ -93,7 +93,9 @@ def construct_new_df(
     # Instantiate the new data frame taking necessary values from the
     # csv-file and appending empty columns with names from the EPA
     # data frame
-    new_df = cp.deepcopy(csv_df[["Target Name", "Instrument", "Type"]])
+    new_df = cp.deepcopy(csv_df[[
+        "Target Name", "Instrument", "Type", "ObsCycle", "EAP [mon]"
+    ]])
     epa_cols = epa_df.columns
     for column in epa_cols:
         new_df[column] = np.nan
@@ -120,4 +122,3 @@ def construct_new_df(
 if __name__ == "__main__":
     u.rc_setup()
     main()
-    plt.show()

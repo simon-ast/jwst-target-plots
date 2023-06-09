@@ -50,7 +50,8 @@ def wrap_schedule_plot(select_list: pd.DataFrame, savename: str) -> None:
 
     # Final steps
     timeline_plot_cleanup(ax)
-    plt.savefig(f"plots/{savename}.svg")
+    plt.savefig(f"plots/target_schedule/{savename}.svg")
+    plt.savefig(f"plots/target_schedule/{savename}.png", dpi=600)
 
     return
 
