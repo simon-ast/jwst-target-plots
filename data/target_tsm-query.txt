@@ -1,7 +1,7 @@
 SELECT
-    pl_name, pl_rade, pl_masse, pl_orbsmax,
+    pl_name, pl_rade, pl_masse, pl_orbsmax, pl_eqt, pl_orbper,
     st_rad, st_mass, st_teff, st_spectype,
-    sy_jmag, sy_vmag, sy_dist,
+    sy_jmag, sy_vmag, sy_kmag, sy_dist, sy_pnum,
     disc_year
 from ps WHERE default_flag = 1
 AND pl_rade <= 4.0
