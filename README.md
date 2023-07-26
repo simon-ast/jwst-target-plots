@@ -17,37 +17,61 @@ Exemplary output:
 - SMA distance (AU) against host star effective temperature
 - Marker colour-mapped by planetary radius
 
-![Cycle 1 Targets](plots/targets_all.svg)
+<img src="plots/targets_all.svg" />
 
 Exemplary output for Cycle 1 schedule: Individual observations of transit
 targets (current date marked by vertical dashed line)
 
-![Cycle 1 Schedule](plots/target_schedule/schedule_cycle1_transit.svg)
+<img src="plots/target_schedule/schedule_cycle1_transit.svg" />
 
 Exemplary output of TSM evaluation: Results are saved in the `tsm_table.csv`,
 ```
-          pl_name  pl_rade  pl_masse  pl_orbsmax  pl_eqt  ...   td_perc  sig_prim_ppm  sig_seco_ppm  ARIEL  JWST
-55      GJ 1214 b    2.742      8.17     0.01490   596.0  ...  1.432963        1907.0         153.0   True  True
-535    LHS 1140 b    1.635      6.38     0.09570   378.9  ...  0.509490         329.0          26.0    NaN  True
-142     GJ 3090 b    2.130      3.34     0.03165   693.0  ...  0.141023         415.0          33.0   True  True
-3076    TOI-270 d    2.133      4.78     0.07210   387.0  ...  0.264821         304.0          24.0   True  True
-523     TOI-270 c    2.355      6.15     0.04526   488.0  ...  0.322815         401.0          32.0   True   NaN
-515   LP 791-18 c    2.438      7.10     0.02961   324.4  ...  1.541917        1143.0          91.0   True   NaN
-442    TOI-1231 b    3.650     15.40     0.12880   329.6  ...  0.486006         253.0          20.0   True  True
-758    TOI-1201 b    2.415      6.28     0.02870   703.0  ...  0.188466         339.0          27.0    NaN   NaN
-53     TOI-1759 b    3.140     10.80     0.11770   443.0  ...  0.230195         197.0          16.0   True   NaN
-141    TOI-1416 b    1.620      3.48     0.01900  1517.0  ...  0.035344         166.0          13.0    NaN   NaN
-547     TOI-178 d    2.572      3.01     0.05920   690.0  ...  0.131599         516.0          41.0   True   NaN
-437     TOI-178 g    2.870      3.94     0.12750   470.0  ...  0.163861         373.0          30.0   True   NaN
-158   Kepler-37 d    2.030      2.00     0.21090   499.0  ...  0.055498         187.0          15.0    NaN   NaN
-412    TOI-1064 c    2.651      2.50     0.09429   634.0  ...  0.110844         496.0          40.0   True   NaN
-62      TOI-421 b    2.680      7.17     0.05600   981.4  ...  0.079757         195.0          16.0    NaN  True
-123     TOI-969 b    2.765      9.10     0.02636   941.0  ...  0.143146         272.0          22.0    NaN   NaN
-527     TOI-561 c    2.910      5.39     0.08840   800.0  ...  0.100871         290.0          23.0   True   NaN
-667       K2-36 c    3.200      7.90     0.05528   854.0  ...  0.166025         382.0          31.0    NaN   NaN
-218    TOI-1422 b    3.960      9.00     0.10800   867.0  ...  0.126686         321.0          26.0   True   NaN
-213    TOI-1246 d    3.510      5.30     0.13100   586.0  ...  0.140009         361.0          29.0   True   NaN
+         pl_name  pl_rade    TSM st_spectype  sy_jmag   td_perc ARIEL  JWST
+66     GJ 1214 b    2.742  482.0        M4 V    9.750  1.432963  True  True
+622  HD 219134 b    1.602  292.0                3.981  0.035455   NaN   NaN
+554     55 Cnc e    1.875  255.0                4.768  0.033441  True  True
+544  HD 136352 c    2.916  234.0                4.308  0.063607  True   NaN
+73   HD 191939 d    2.995  227.0        G9 V    7.597  0.085325  True   NaN
+172    GJ 3090 b    2.130  217.0        M2 V    8.168  0.141023  True  True
+513  HD 219134 c    1.511  205.0                3.981  0.031541   NaN   NaN
+814  HD 260655 c    1.533  196.0        M0 V    6.674  0.102028  True   NaN
+823    TOI-431 d    3.290  189.0                7.305  0.170720  True   NaN
+460   TOI-1064 c    2.651  169.0                9.097  0.110844  True   NaN
+607    TOI-178 d    2.572  155.0           K    9.372  0.131599  True   NaN
+71   HD 191939 b    3.410  153.0        G9 V    7.597  0.110609  True   NaN
+183  HD 207496 b    2.250  143.0      K2.5 V    6.570  0.071767   NaN   NaN
+368    GJ 9827 d    2.022  141.0                7.984  0.095455  True  True
+256   HIP 9618 b    3.900  139.0                7.922  0.135870   NaN   NaN
+583    TOI-270 c    2.355  137.0           M    9.099  0.322815  True   NaN
+33    HD 73583 b    2.790  136.0        K4 V    7.649  0.154853  True   NaN
+263     K2-138 f    2.904  136.0               10.756  0.095837  True   NaN
+113  HD 136352 b    1.664  136.0                4.308  0.020713   NaN   NaN
+580  HD 136352 d    2.562  127.0                4.308  0.049100   NaN   NaN
 
 ```
-Some preliminary parameters are plotted as well,
-![TSM evaluation](plots/target_spectroscopy-metric/target_tsm_table.svg)
+Some preliminary parameters are plotted as well (on the left, system 
+distance against TSM value, colour-coded by planet radius; on the right, 
+planet radius against orbital period, colour-coded by TSM value):
+
+
+<p align="center">
+<img src="plots/target_spectroscopy-metric/example/target_tsm_table.svg" 
+align="left" width="49.7%"/>
+<img src="plots/target_spectroscopy-metric/example/target_tsm_table_params.svg" 
+align="left" width="49.7%"/>
+</p>
+
+Finally, I also added an optional plot of individual systems in the 
+mass-radius parameter space, to get an idea of the planet composition. Some 
+example-plots are shown below. I included some iso-density contours from 
+[Zeng et al. (2016)](https://iopscience.iop.org/article/10.3847/0004-637X/819/2/127) 
+(as I have seen done in other paper), as well as the uncertainties give in the 
+data set from the NASA EPA).
+
+<p align="center">
+<img src="plots/target_spectroscopy-metric/individual_systems/example/target_TRAPPIST-1_density.svg" 
+align="left" width="49%"/>
+<img src="plots/target_spectroscopy-metric/individual_systems/example/target_TOI-178_density.svg" 
+align="left" width="49%"/>
+</p>
+

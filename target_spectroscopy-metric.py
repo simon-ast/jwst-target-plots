@@ -1,82 +1,19 @@
 import pyvo
 import numpy as np
 import pandas as pd
-import astropy.constants as c
 import matplotlib.pyplot as plt
 import modules.util as u
+import modules.tsm_calculations as tsm
 import modules.simbad_query as sq
 
 # TODO: Include ESM calculation
 # TODO: Comparison to JWST targets (and ARIEL) - Problem with SIMBAD query
 
 
-def atmospheric_signal(mmw: float, result_df: pd.DataFrame) -> pd.Series:
-    """
-    Calculate transit depth modulation in ppm, based on 5 scale heights
-    """
-    # First, calculate scale height of the atmosphere
-    scale_h = calc_scale_height(mmw, result_df)
-
-    # Following Tinetti et al. (2013), equation 1, the zeroth-order
-    # approximation of the atmospheric signal from 5 scale heights
-    enum = 2 * result_df["pl_rade"] * c.R_earth * scale_h
-    denom = (result_df["st_rad"] * c.R_sun) ** 2
-
-    # Result in ppm
-    signal = 5 * enum / denom * 1e6
-
-    return np.round(signal)
-
-
-def calc_scale_height(mmw: float, result_table: pd.DataFrame) -> pd.Series:
-    """
-    Calculate scale height estimate (using equilibrium-temperature
-    values from the NASA EPA right now, rather than the calculation
-    routine described in Kempton et al. (2018))
-    """
-    # Should I use this instead?
-    # teq = kempton_teq(result_table)
-
-    teq = result_table["pl_eqt"]
-    grav_g = calc_grav_g(result_table["pl_masse"], result_table["pl_rade"])
-
-    scale_h = c.k_B * teq / (grav_g * mmw * c.u)
-
-    return scale_h
-
-
-def calc_grav_g(planet_mass: pd.Series, planet_radius: pd.Series) -> pd.Series:
-    """
-    Calculate gravitational acceleration in SI-units. Input must be in
-    Earth-scaled units
-    """
-    enum = c.G * planet_mass * c.M_earth
-    denom = (planet_radius * c.R_earth) ** 2
-
-    grav_g = enum / denom
-    return grav_g
-
-
-def transit_estimations(result_table: pd.DataFrame) -> None:
-    """
-    Add some transit markers (total depth, potential relative depth) to
-    the result table. Using the 5 * scale-height estimate for now
-    """
-    # Absolute transit depth in percent
-    rp_rs = ((result_table["pl_rade"] * c.R_earth)
-             / (result_table["st_rad"] * c.R_sun)) ** 2
-    result_table["td_perc"] = rp_rs * 1e2
-
-    # Expected signal for a H2/He-dominated atmosphere (mu_1) and an
-    # Earth-like atmosphere (mu_2)
-    mu1, mu2 = 2, 25
-    result_table["sig_prim_ppm"] = atmospheric_signal(mu1, result_table)
-    result_table["sig_seco_ppm"] = atmospheric_signal(mu2, result_table)
-
-    return None
-
-
 def main():
+    # Name the query to be done
+    id_name = "tsm_table"
+
     # Query EPA for planet parameters, and calculate TSM values
     query_file = "data/target_tsm-query.txt"
     query_res = create_tsm_table(query_file)
@@ -85,12 +22,22 @@ def main():
     sq.target_comparison(query_res)
 
     # Save the full results, as well as the best 20 (maybe?)
-    query_res.to_csv("plots/tsm_table.csv", sep="\t", index=False)
-    print(query_res.head(20).sort_values(by="sy_dist"))
+    query_res.to_csv(f"plots/{id_name}.csv", sep="\t", index=False)
+
+    # Print the top-TSM results to the terminal
+    print_col_interest = [
+        "pl_name", "pl_rade", "TSM", "st_spectype", "sy_jmag", "td_perc",
+        "ARIEL", "JWST"
+    ]
+    print_df = query_res.head(20)[print_col_interest]
+    print(print_df)
 
     # Plot and save TSM results
-    plot_tsm_table(query_res, "tsm_table")
-    plot_tsm_table(query_res.head(20), "tsm_table_top20")
+    plot_tsm_table(query_res, id_name)
+
+    # Plot individual systems
+    host = "TOI-178"
+    plot_indiv_system(query_res, host)
 
 
 def create_tsm_table(query_file: str) -> pd.DataFrame:
@@ -104,10 +51,10 @@ def create_tsm_table(query_file: str) -> pd.DataFrame:
 
     # Execute query and add TSM value
     query_res = query_nasa_epa(adql_query)
-    query_res["TSM"] = kempton_tsm(query_res)
+    query_res["TSM"] = tsm.kempton_tsm(query_res)
 
     # Add some additional values
-    transit_estimations(query_res)
+    tsm.transit_estimations(query_res)
 
     # Restrict results to only non-NaN values for TSM, and sort
     # by descending TSM-value
@@ -120,9 +67,9 @@ def create_tsm_table(query_file: str) -> pd.DataFrame:
 
 def plot_tsm_table(tsm_table: pd.DataFrame, save_id: str) -> None:
     """Plot TSM values in reference to some specified parameter"""
+    # 1st figure: System distance against TSM, radius colour-map
     fig, ax = plt.subplots()
-
-    cmap = plt.scatter(tsm_table["sy_dist"], tsm_table["TSM"],
+    cmap = ax.scatter(tsm_table["sy_dist"], tsm_table["TSM"],
                        c=tsm_table["pl_rade"], cmap="viridis")
     plt.colorbar(cmap, label="Planet radius [R$_\\mathrm{E}$]")
 
@@ -133,9 +80,10 @@ def plot_tsm_table(tsm_table: pd.DataFrame, save_id: str) -> None:
 
     plt.tight_layout()
     plt.savefig(f"plots/target_spectroscopy-metric/target_{save_id}.svg")
-    
+
+    # 2nd figure: orbital period against radius, TSM colour-map
     fig2, ax2 = plt.subplots()
-    cmap2 = plt.scatter(
+    cmap2 = ax2.scatter(
         tsm_table["pl_orbper"], tsm_table["pl_rade"],
         c=np.log10(tsm_table["TSM"]), cmap="viridis"
     )
@@ -147,6 +95,115 @@ def plot_tsm_table(tsm_table: pd.DataFrame, save_id: str) -> None:
     plt.tight_layout()
     plt.savefig(f"plots/target_spectroscopy-metric/"
                 f"target_{save_id}_params.svg")
+
+
+def plot_indiv_system(query_res: pd.DataFrame, hostname: str) -> None:
+    """DOC!"""
+    # Subframe for system of interest
+    subframe = query_res.loc[query_res["hostname"] == hostname]
+    if subframe.empty:
+        print(f"CANNOT FIND {hostname}!")
+        exit()
+
+    # Figure: mass against radius, TSM colour-map
+    # Figure body
+    fig, ax = setup_density_plot()
+
+    # Error in radius and mass
+    rad_err = [subframe["pl_radeerr1"], subframe["pl_radeerr2"] * -1]
+    mass_err = [subframe["pl_masseerr1"], subframe["pl_masseerr2"] * -1]
+
+    # Use error bars from first, and overlay scatterplot with colour-map
+    ax.errorbar(
+        subframe["pl_masse"], subframe["pl_rade"], xerr=mass_err,
+        yerr=rad_err, marker="none", fmt="none", c="black", zorder=2
+    )
+
+    cmap3 = ax.scatter(
+        subframe["pl_masse"], subframe["pl_rade"],
+        c=subframe["pl_eqt"], cmap="plasma",
+        edgecolors="black", zorder=3
+    )
+    plt.colorbar(cmap3, label="T$_\\mathrm{eq}$ [K]", )
+
+    # Some plotting parameters
+    planet_total, x_lim, y_lim = calc_density_plot_pars(subframe)
+
+    # Plot formatting
+    ax.set(
+        xlabel="M$_\\mathrm{p}$ [M$_\\mathrm{E}$]", xscale="log",
+        ylabel="R$_\\mathrm{p}$ [R$_\\mathrm{E}$]",
+        title=f"{hostname} ({planet_total} system members in NASA EPA)",
+        xlim=x_lim, ylim=y_lim
+    )
+    plt.legend(title="Zeng et al. (2016)", loc="upper left")
+    plt.tight_layout()
+
+    # Save the plot
+    plot_loc = "plots/target_spectroscopy-metric/individual_systems"
+    plt.savefig(
+        f"{plot_loc}/target_{hostname}_density.svg"
+    )
+
+
+def setup_density_plot():
+    """Set up the mass-radius plots for individual systems"""
+    fig, ax = plt.subplots()
+
+    # Iso-lines from Zheng et al. (2016)
+    plot_density_contour(
+        ax, "zeng2016_5percH2_rockycore_500k.dat", ":",
+        "5% H$_2$ (rocky, 500 K)"
+    )
+    plot_density_contour(
+        ax, "zeng2016_5percH2_watercore_500k.dat", "-.",
+        "5% H$_2$ (water-rich, 500 K)"
+    )
+    plot_density_contour(
+        ax, "zeng2016_100percwater.dat", "--",
+        "100% H$_2$O envelope (500 K)"
+    )
+    plot_density_contour(
+        ax, "zeng2016_notatmo_earthcore.dat", "-",
+        "Rocky (no atmosphere)"
+    )
+
+    return fig, ax
+
+
+def plot_density_contour(
+        axis: plt.Axes, file_name: str,
+        line_style: str, line_label: str
+) -> None:
+    """Plot iso-contours from Zheng et al. (2016) values"""
+    # Read the correct file
+    data_loc = "data"
+    filename = f"{data_loc}/{file_name}"
+    data_set = pd.read_csv(filename, sep="\t")
+
+    axis.plot(
+        data_set["mass"], data_set["radius"], zorder=0,
+        ls=line_style, label=line_label, c="black", lw=2
+    )
+
+    return None
+
+
+def calc_density_plot_pars(subframe: pd.DataFrame) -> tuple:
+    """Calculate some plotting and labeling parameters"""
+    # Total number of planets in the system for reference
+    number_of_planet = subframe["sy_pnum"].to_numpy()[0]
+
+    # Standard values for x (mass) and y (radius) boundaries
+    x_limits = (0.11, 15)
+    y_limits = (0.5, 4.0)
+
+    # Adjust mass boundaries
+    if np.min(subframe["pl_masse"]) < x_limits[0]:
+        new_low = np.min(subframe["pl_masse"] + subframe["pl_masseerr2"]) * 0.9
+        x_limits = (new_low, 15)
+
+    return number_of_planet, x_limits, y_limits
 
 
 def query_nasa_epa(query_string: str) -> pd.DataFrame:
@@ -163,63 +220,6 @@ def query_nasa_epa(query_string: str) -> pd.DataFrame:
     result_table = service.search(query_string)
 
     return result_table.to_table().to_pandas()
-
-
-def kempton_tsm(eqt: pd.DataFrame) -> pd.Series:
-    """
-    Calculate the TSM value as described in Kempton et al. (2018)
-    """
-    # Correct values for T_eq
-    #t_eq = kempton_teq(eqt)
-    t_eq = eqt["pl_eqt"]
-
-    # Split up the calculation
-    enum = (eqt["pl_rade"]) ** 3 * t_eq
-    denom = (eqt["pl_masse"] * eqt["st_rad"] ** 2)
-    factor = 10 ** (- eqt["sy_jmag"] / 5)
-
-    # Scale factor assignment
-    scale_factor = np.array(
-        [kempton_scale_factor(radius) for radius in eqt["pl_rade"]]
-    )
-
-    # Put everything together to calculate TSM
-    tsm = scale_factor * enum / denom * factor
-
-    return tsm
-
-
-def kempton_teq(eqt: pd.DataFrame) -> pd.Series:
-    """
-    Assignment of equilibrium temperature according to Kempton et al. (2018)
-    """
-    t_eq = eqt["st_teff"] * np.sqrt(
-        (eqt["st_rad"] * c.R_sun) / (eqt["pl_orbsmax"] * c.au)
-    ) * (1/4) ** (1/4)
-
-    return t_eq
-
-
-def kempton_scale_factor(pl_rad):
-    """Assign a scale-factor to each planet following Table 1"""
-    scale_factors = [0.190, 1.26, 1.28, 1.15]
-
-    if pl_rad <= 1.5:
-        return scale_factors[0]
-
-    elif pl_rad <= 2.75:
-        return scale_factors[1]
-
-    elif pl_rad <= 4.0:
-        return scale_factors[2]
-
-    elif pl_rad <= 10.0:
-        return scale_factors[3]
-
-    else:
-        return scale_factors[3]
-        # This should not be able to trigger when only querying sub-Neptunes
-    #    print("WHAT?")
 
 
 if __name__ == "__main__":

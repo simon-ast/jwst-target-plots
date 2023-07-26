@@ -1,8 +1,10 @@
 SELECT
-    pl_name, pl_rade, pl_masse, pl_orbsmax, pl_eqt, pl_orbper,
+    pl_name, pl_orbsmax, pl_eqt, pl_orbper,
+    pl_masse, pl_masseerr1, pl_masseerr2,
+    pl_rade, pl_radeerr1, pl_radeerr2,
     st_rad, st_mass, st_teff, st_spectype,
-    sy_jmag, sy_vmag, sy_kmag, sy_dist, sy_pnum,
+    sy_jmag, sy_vmag, sy_kmag, sy_dist, sy_pnum, hostname,
     disc_year
-from ps WHERE default_flag = 1
+from ps
+WHERE default_flag = 1
 AND pl_rade <= 4.0
-AND sy_jmag >= 8.0
