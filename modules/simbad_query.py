@@ -18,6 +18,10 @@ def target_comparison(raw_query: pd.DataFrame) -> None:
     Compares names in the EPA query list with the ARIEL T2 target list
     from Billy Edwards, and with my own JWST target lists
     """
+    # Insert ARIEL and JWST column
+    raw_query["ARIEL"] = None
+    raw_query["JWST"] = None
+    
     # Comparison libraries
     ariel = pd.read_csv(
         "data/ArielT2MCS_11Apr2023.csv"
@@ -30,6 +34,7 @@ def target_comparison(raw_query: pd.DataFrame) -> None:
                               )["Target Name"].to_numpy()
     jwst = np.unique(np.append(jwst_cycle1, jwst_cycle2))
     jwst_simbad = query_simbad_names(jwst)
+    
 
     for planet in raw_query["pl_name"]:
         try:

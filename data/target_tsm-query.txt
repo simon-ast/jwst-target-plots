@@ -7,4 +7,4 @@ SELECT
     disc_year
 from ps
 WHERE default_flag = 1
-AND pl_rade <= 4.0
+AND pl_rade <= 10.0

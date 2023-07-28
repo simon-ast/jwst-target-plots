@@ -27,17 +27,17 @@ def main():
     # Print the top-TSM results to the terminal
     print_col_interest = [
         "pl_name", "pl_rade", "TSM", "st_spectype", "sy_jmag", "td_perc",
-        "ARIEL", "JWST"
+        "ARIEL", "JWST", "sy_dist"
     ]
-    print_df = query_res.head(20)[print_col_interest]
-    print(print_df)
-
+    
     # Plot and save TSM results
     plot_tsm_table(query_res, id_name)
 
     # Plot individual systems
-    host = "TOI-178"
+    host = "Kepler-37"
+    indiv_system = query_res.loc[query_res["hostname"] == host][print_col_interest]
     plot_indiv_system(query_res, host)
+    print(indiv_system)
 
 
 def create_tsm_table(query_file: str) -> pd.DataFrame:
@@ -196,7 +196,7 @@ def calc_density_plot_pars(subframe: pd.DataFrame) -> tuple:
 
     # Standard values for x (mass) and y (radius) boundaries
     x_limits = (0.11, 15)
-    y_limits = (0.5, 4.0)
+    y_limits = (0.1, 4)
 
     # Adjust mass boundaries
     if np.min(subframe["pl_masse"]) < x_limits[0]:
