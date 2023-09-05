@@ -1,16 +1,28 @@
-import pyvo
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import modules.util as u
 import modules.tsm_calculations as tsm
 import modules.simbad_query as sq
+import matplotlib.pyplot as plt
+import modules.util as u
+import pandas as pd
+import numpy as np
+import logging
+import pyvo
 
 # TODO: Include ESM calculation
-# TODO: Comparison to JWST targets (and ARIEL) - Problem with SIMBAD query
+GEN_PLOTS = False
+INDIV_SYSTEM = "TOI-178"
 
 
 def main():
+    # Set up logging solution for SIMBAD query warning
+    simbad_log = "output/target_spectroscopy-metric/query.log"
+    logging.basicConfig(filename=simbad_log, level=logging.INFO)
+    # This captures astropy warnings
+    logging.captureWarnings(True)
+    print(
+        f"\nBe aware that SIMBAR query errors are logged into "
+        f"{simbad_log} rather than displayed"
+    )
+
     # Name the query to be done
     id_name = "tsm_table"
 
@@ -22,22 +34,33 @@ def main():
     sq.target_comparison(query_res)
 
     # Save the full results, as well as the best 20 (maybe?)
-    query_res.to_csv(f"plots/{id_name}.csv", sep="\t", index=False)
+    query_res.to_csv(
+        f"output/target_spectroscopy-metric/{id_name}.csv",
+        sep="\t", index=False
+    )
 
     # Print the top-TSM results to the terminal
     print_col_interest = [
-        "pl_name", "pl_rade", "TSM", "st_spectype", "sy_jmag", "td_perc",
-        "ARIEL", "JWST", "sy_dist"
+        "pl_name", "pl_rade", "pl_masse", "pl_dens", "TSM", "sy_pnum",
+        "sy_jmag", "td_perc", "ARIEL", "JWST", "st_teff", "pl_eqt"
     ]
     
     # Plot and save TSM results
-    plot_tsm_table(query_res, id_name)
+    if GEN_PLOTS is True:
+        plot_tsm_table(query_res, id_name)
 
     # Plot individual systems
-    host = "Kepler-37"
-    indiv_system = query_res.loc[query_res["hostname"] == host][print_col_interest]
-    plot_indiv_system(query_res, host)
-    print(indiv_system)
+    if INDIV_SYSTEM is not False:
+        individual_system(INDIV_SYSTEM, query_res, print_col_interest)
+
+
+def individual_system(
+        query_name: str, query_res: pd.DataFrame, print_query: list
+) -> None:
+    """Generate specialised output for individual systems"""
+    indiv_system = query_res.loc[query_res["hostname"] == query_name]
+    print(f"\n{indiv_system[print_query]}\n")
+    plot_indiv_system(query_res, query_name)
 
 
 def create_tsm_table(query_file: str) -> pd.DataFrame:
@@ -79,7 +102,7 @@ def plot_tsm_table(tsm_table: pd.DataFrame, save_id: str) -> None:
     )
 
     plt.tight_layout()
-    plt.savefig(f"plots/target_spectroscopy-metric/target_{save_id}.svg")
+    plt.savefig(f"output/target_spectroscopy-metric/target_{save_id}.svg")
 
     # 2nd figure: orbital period against radius, TSM colour-map
     fig2, ax2 = plt.subplots()
@@ -93,12 +116,13 @@ def plot_tsm_table(tsm_table: pd.DataFrame, save_id: str) -> None:
         ylabel="Planet radius [R$_\\mathrm{E}$]"
     )
     plt.tight_layout()
-    plt.savefig(f"plots/target_spectroscopy-metric/"
-                f"target_{save_id}_params.svg")
+    plt.savefig(
+        f"output/target_spectroscopy-metric/target_{save_id}_params.svg"
+    )
 
 
 def plot_indiv_system(query_res: pd.DataFrame, hostname: str) -> None:
-    """DOC!"""
+    """Some informational plots for individual systems"""
     # Subframe for system of interest
     subframe = query_res.loc[query_res["hostname"] == hostname]
     if subframe.empty:
@@ -140,7 +164,7 @@ def plot_indiv_system(query_res: pd.DataFrame, hostname: str) -> None:
     plt.tight_layout()
 
     # Save the plot
-    plot_loc = "plots/target_spectroscopy-metric/individual_systems"
+    plot_loc = "output/target_spectroscopy-metric/individual_systems"
     plt.savefig(
         f"{plot_loc}/target_{hostname}_density.svg"
     )

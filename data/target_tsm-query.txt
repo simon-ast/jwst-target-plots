@@ -1,5 +1,5 @@
 SELECT
-    pl_name, pl_orbsmax, pl_eqt, pl_orbper,
+    pl_name, pl_orbsmax, pl_eqt, pl_orbper, pl_dens,
     pl_masse, pl_masseerr1, pl_masseerr2,
     pl_rade, pl_radeerr1, pl_radeerr2,
     st_rad, st_mass, st_teff, st_spectype,
@@ -7,4 +7,3 @@ SELECT
     disc_year
 from ps
 WHERE default_flag = 1
-AND pl_rade <= 10.0

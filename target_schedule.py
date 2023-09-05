@@ -50,8 +50,8 @@ def wrap_schedule_plot(select_list: pd.DataFrame, savename: str) -> None:
 
     # Final steps
     timeline_plot_cleanup(ax)
-    plt.savefig(f"plots/target_schedule/{savename}.svg")
-    plt.savefig(f"plots/target_schedule/{savename}.png", dpi=600)
+    plt.savefig(f"output/target_schedule/{savename}.svg")
+    plt.savefig(f"output/target_schedule/{savename}.png", dpi=600)
 
     return
 
@@ -172,7 +172,7 @@ def assign_inst_colour(
 def timeline_plot_setup() -> Tuple[plt.Figure, plt.Axes]:
     """General plot setup"""
     # Specify a fitting figure-size
-    fig, ax = plt.subplots(figsize=(15, 6))
+    fig, ax = plt.subplots(figsize=(11.69, 8.27))
 
     # Plot labeling
     ax.set(xlabel="Date", ylabel="Target Name")

@@ -1,3 +1,0 @@
-Name	Mass [Me]	Radius [Re]	Host Teff [K]	Host L [log(Lsun)] SMA [au]
-Mercury	0.055	0.383	5772	0	0.387
-
