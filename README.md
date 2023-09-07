@@ -14,15 +14,17 @@ Queries the  NASA Exoplanet Archive DB to get most up-to-date parameters.
   Cycle 1 and 2, as well as in the ARIEL Tier 2 target list.
 
 Exemplary output: 
-- SMA distance (AU) against host star effective temperature
-- Marker colour-mapped by planetary radius
+- Planetary radius against orbital period
+- Marker colour-mapped by host star effective temperature
 
-<img src="plots/targets_all.svg" />
+<img src="output/target_parameters/target_parameters_all-types.svg" />
 
 Exemplary output for Cycle 1 schedule: Individual observations of transit
-targets (current date marked by vertical dashed line)
+targets (current date marked by vertical dashed line). This figure is still 
+a W.I.P., for now the different cases of NIRSpec CLEAR and F290LP 
+observations are marked by `+` and `x` markers, respectively.
 
-<img src="plots/target_schedule/schedule_cycle1_transit.svg" />
+<img src="output/target_schedule/schedule_cycle1_transit.png" />
 
 Exemplary output of TSM evaluation: Results are saved in the `tsm_table.csv`,
 ```
@@ -55,9 +57,9 @@ planet radius against orbital period, colour-coded by TSM value):
 
 
 <p align="center">
-<img src="plots/target_spectroscopy-metric/example/target_tsm_table.svg" 
+<img src="output/target_spectroscopy-metric/example/target_tsm_table.svg" 
 align="left" width="49.7%"/>
-<img src="plots/target_spectroscopy-metric/example/target_tsm_table_params.svg" 
+<img src="output/target_spectroscopy-metric/example/target_tsm_table_params.svg" 
 align="left" width="49.7%"/>
 </p>
 
@@ -69,9 +71,9 @@ example-plots are shown below. I included some iso-density contours from
 data set from the NASA EPA).
 
 <p align="center">
-<img src="plots/target_spectroscopy-metric/individual_systems/example/target_TRAPPIST-1_density.svg" 
+<img src="output/target_spectroscopy-metric/individual_systems/example/target_TRAPPIST-1_density.svg" 
 align="left" width="49%"/>
-<img src="plots/target_spectroscopy-metric/individual_systems/example/target_TOI-178_density.svg" 
+<img src="output/target_spectroscopy-metric/individual_systems/example/target_TOI-178_density.svg" 
 align="left" width="49%"/>
 </p>
 
