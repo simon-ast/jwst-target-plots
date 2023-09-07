@@ -55,13 +55,7 @@ Some preliminary parameters are plotted as well (on the left, system
 distance against TSM value, colour-coded by planet radius; on the right, 
 planet radius against orbital period, colour-coded by TSM value):
 
-
-<p align="center">
-<img src="output/target_spectroscopy-metric/example/target_tsm_table.svg" 
-align="left" width="49.7%"/>
-<img src="output/target_spectroscopy-metric/example/target_tsm_table_params.svg" 
-align="left" width="49.7%"/>
-</p>
+![](output/target_spectroscopy-metric/example/target_tsm_table.svg)
 
 Finally, I also added an optional plot of individual systems in the 
 mass-radius parameter space, to get an idea of the planet composition. Some 
@@ -70,10 +64,4 @@ example-plots are shown below. I included some iso-density contours from
 (as I have seen done in other paper), as well as the uncertainties give in the 
 data set from the NASA EPA).
 
-<p align="center">
-<img src="output/target_spectroscopy-metric/individual_systems/example/target_TRAPPIST-1_density.svg" 
-align="left" width="49%"/>
-<img src="output/target_spectroscopy-metric/individual_systems/example/target_TOI-178_density.svg" 
-align="left" width="49%"/>
-</p>
-
+![](output/target_spectroscopy-metric/individual_systems/example/target_TOI-178_density.svg)
