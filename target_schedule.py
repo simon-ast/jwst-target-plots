@@ -1,13 +1,13 @@
-import pandas as pd
-import datetime as dt
 import dateutil.relativedelta as daterel
-import numpy as np
-import copy as cp
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 import modules.util as u
 from typing import Tuple
+import datetime as dt
+import pandas as pd
+import numpy as np
+import copy as cp
 
 
 # GLOBALS
@@ -41,8 +41,18 @@ def wrap_schedule_plot(select_list: pd.DataFrame, savename: str) -> None:
 
     # Plotting routine
     fig, ax = timeline_plot_setup()
-    for idx in range(final_length):
-        indiv_target_plot(select_list.iloc[idx], ax)
+
+    # Make sure points are plotted in observation date order
+    for name in select_list["Target Name"].unique():
+
+        temp_frame = select_list.loc[select_list["Target Name"] == name]
+        temp_frame = temp_frame.sort_values(
+            by="Observation Date(s) [MM/DD/YY]", ascending=False
+        )
+
+        total_obs = temp_frame.shape[0]
+        for idx in range(total_obs):
+            indiv_target_plot(temp_frame.iloc[idx], ax, total_obs)
 
     # Plot indication of current date
     today = dt.datetime.today()
@@ -155,18 +165,29 @@ def select_targets(
 def assign_inst_colour(
         raw_data_frame: pd.Series,
         inst_key: str
-) -> str:
+) -> tuple:
     """Assign colour for plot based on instrument used"""
     # Instrument colour scheme
     inst_col = INSTRUMENT_COLOUR_MAP
 
     # Target instrument key values
-    inst_keys = raw_data_frame[inst_key].split(" / ")
+    inst_id_lst = raw_data_frame[inst_key].split(" / ")
 
     # Assign colours based on instrument (entries are e.g. "NIRspec, BOTS")
-    colour_key = inst_col[inst_keys[0]]
+    colour_key = inst_col[inst_id_lst[0]]
 
-    return colour_key
+    # Assign marker based on filter (wavelength-range)
+    # TODO: Cover all instrument-filer-combinations
+    marker_filter = "o"
+    inst_filter = raw_data_frame["Filter"]
+
+    if inst_id_lst[0] == "NIRSpec":
+        if inst_filter == "F290LP":
+            marker_filter = "X"
+        else:
+            marker_filter = "P"
+
+    return colour_key, marker_filter
 
 
 def timeline_plot_setup() -> Tuple[plt.Figure, plt.Axes]:
@@ -181,15 +202,20 @@ def timeline_plot_setup() -> Tuple[plt.Figure, plt.Axes]:
     return fig, ax
 
 
-def indiv_target_plot(df_entry: pd.Series, ax: plt.Axes) -> None:
+def indiv_target_plot(
+        df_entry: pd.Series, ax: plt.Axes, label_add: int
+) -> None:
     """Plot individual target entry in extended data frame"""
     # Plot parameters
     date = df_entry["Observation Date(s) [MM/DD/YY]"]
     name = df_entry["Target Name"]
-    colour_inst = assign_inst_colour(df_entry, "Instrument")
+    colour_inst, marker_filt = assign_inst_colour(df_entry, "Instrument")
 
     # Plot values and
-    ax.scatter(date, name, s=30, c=colour_inst, edgecolor="black", zorder=4)
+    ax.scatter(
+        date, f"{name} ({label_add})", s=30, marker=marker_filt, lw=0.5,
+        c=colour_inst, edgecolor="black", zorder=4
+    )
 
 
 def timeline_plot_cleanup(ax: plt.Axes) -> None:
