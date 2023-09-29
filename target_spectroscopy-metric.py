@@ -1,4 +1,4 @@
-import modules.tsm_calculations as tsm
+import modules.kempton_metrics as km
 import modules.simbad_query as sq
 import matplotlib.pyplot as plt
 import modules.util as u
@@ -9,7 +9,7 @@ import pyvo
 
 # TODO: Include ESM calculation
 GEN_PLOTS = False
-INDIV_SYSTEM = "TOI-178"
+INDIV_SYSTEM = "HD 260655"
 
 
 def main():
@@ -41,8 +41,9 @@ def main():
 
     # Print the top-TSM results to the terminal
     print_col_interest = [
-        "pl_name", "pl_rade", "pl_masse", "pl_dens", "TSM", "sy_pnum",
-        "sy_jmag", "td_perc", "ARIEL", "JWST", "st_teff", "pl_eqt"
+        "pl_name", "pl_rade", "pl_masse", "pl_dens", "sy_pnum",
+        "sy_jmag", "td_perc", "ARIEL", "JWST", "st_teff", "pl_eqt",
+        "TSM", "ESM"
     ]
     
     # Plot and save TSM results
@@ -73,17 +74,21 @@ def create_tsm_table(query_file: str) -> pd.DataFrame:
         adql_query = query_file.read().replace('\n', ' ')
 
     # Execute query and add TSM value
+    # TODO: Insert adjustment here!
     query_res = query_nasa_epa(adql_query)
-    query_res["TSM"] = tsm.kempton_tsm(query_res)
+    km.kempton_metrics(query_res)
+
+    # Restrict to only existing TSM and ESM values
+    query_res = query_res.dropna(subset=["TSM", "ESM"])
 
     # Add some additional values
-    tsm.transit_estimations(query_res)
+    km.transit_estimations(query_res)
 
     # Restrict results to only non-NaN values for TSM, and sort
     # by descending TSM-value
-    query_res = query_res.dropna(subset="TSM").sort_values(
-        by="TSM", ascending=False
-    )
+    #query_res = query_res.dropna(subset="TSM").sort_values(
+    #    by="TSM", ascending=False
+    #)
 
     return query_res
 
@@ -92,8 +97,10 @@ def plot_tsm_table(tsm_table: pd.DataFrame, save_id: str) -> None:
     """Plot TSM values in reference to some specified parameter"""
     # 1st figure: System distance against TSM, radius colour-map
     fig, ax = plt.subplots()
-    cmap = ax.scatter(tsm_table["sy_dist"], tsm_table["TSM"],
-                       c=tsm_table["pl_rade"], cmap="viridis")
+    cmap = ax.scatter(
+        tsm_table["sy_dist"], tsm_table["TSM"],
+        c=tsm_table["pl_rade"], cmap="viridis"
+    )
     plt.colorbar(cmap, label="Planet radius [R$_\\mathrm{E}$]")
 
     ax.set(
