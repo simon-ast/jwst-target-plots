@@ -3,9 +3,22 @@ import polars as pl
 import numpy as np
 import pyvo
 
+import modules.epa_query as epa
+
+
 # GLOBALS
 PS_SELECT = "pl_name, pl_orbper, pl_orbsmax, pl_rade, pl_bmasse, pl_eqt, " \
             "st_teff"
+
+QUERY_PARAMETERS = {
+    "pl_name": "planet_name",
+    "pl_orbper": "period_day",
+    "pl_orbsmax": "sma_au",
+    "pl_rade": "radius_rearth",
+    "pl_bmasse": "mass_mearth",
+    "pl_eqt": "eq-temp_kelvin",
+    "st_teff": "st-teff_kelvin"
+}
 
 
 def main():
@@ -21,6 +34,8 @@ def main():
     filename = "data/JWST_targets_new_test.csv"
     polars_frame = pl.read_csv(filename)
     tot_num_planets, _ = polars_frame.shape
+
+    # Redo this with proper function
     cycle_indicator = pl.Series(
         "jwst_cycle", np.full(tot_num_planets, 1, dtype=int)
     )
@@ -33,26 +48,12 @@ def main():
         maintain_order=True
     )
     query_names = unique_names["planet_name"].to_numpy()
-    name_sequence = ""
-    for name in query_names:
-        name_sequence += f"'{name}',"
-    name_sequence = name_sequence[:-1]
-
-    # ToDo: Can produce a unique-named list of planetary targets.
-    # Next step will be to query the EPA for all necessary parameters
-    tap_source = "https://exoplanetarchive.ipac.caltech.edu/TAP"
-    service = pyvo.dal.TAPService(tap_source)
-    query_string = (f"SELECT {PS_SELECT} FROM pscomppars WHERE "
-                    # default_flag = 1 AND "
-                    f"pl_name IN ({name_sequence})")
-    result_table = service.search(query_string)
-    lost_targets = np.setxor1d(query_names, result_table["pl_name"])
-
-    import pandas as pd
-    query_result = pl.from_pandas(pd.DataFrame(result_table))
+    query_result = pl.from_pandas(epa.query_nasa_epa(query_names))
 
     final = update_frame(polars_frame, query_result)
-    print(final)
+
+    final.write_csv(file="test.csv")
+    save_reduced_frame(final)
 
 
 def update_frame(parent_frame, child_frame):
@@ -67,29 +68,48 @@ def update_frame(parent_frame, child_frame):
     ])
 
     dict_name = [
-        update_rows(element, child_frame) 
+        update_rows(element, child_frame)
         for element in final_frame.iter_rows(named=True)
     ]
 
-    finalised = pl.DataFrame(dict_name)
+    finalised = pl.DataFrame(dict_name).sort(by="planet_name")
     return finalised
 
 
 def update_rows(row_dict, query_result):
-    # print(row_dict)
-    # print(query_result.row(by_predicate=(pl.col("pl_name") == row_dict["planet_name"]), named=True))
     try:
         relevant_query = query_result.row(
-            by_predicate=(pl.col("pl_name") == row_dict["planet_name"]),
+            by_predicate=(pl.col("planet_name") == row_dict["planet_name"]),
             named=True
         )
         for key, value in relevant_query.items():
             row_dict[key] = value
 
     except pl.exceptions.NoRowsReturnedError:
+        # This skips over failed queries (which are noted in the log-file)
         pass
 
     return row_dict
+
+
+def save_reduced_frame(
+        total_frame: pl.DataFrame
+        ) -> None:
+    "Save a reduced version of the full query frame."
+    intial_parameters = [
+        "planet_name", "jwst_instrument", "jwst_filter", "jwst_dispersion",
+        "type", "num_obs", "jwst_cycle", "pid", "eap_months"
+    ]
+    reduced_parameters = [
+        "radius_rearth", "mass_mearth", "period_day", "sma_au",
+        "eq-temp_kelvin", "host_name", "star-teff_kelvin"
+    ]
+    selection = intial_parameters + reduced_parameters
+
+    # Save a reduced frame
+    total_frame[selection].write_csv("test_reduced.csv")
+
+    return None
 
 
 if __name__ == "__main__":
