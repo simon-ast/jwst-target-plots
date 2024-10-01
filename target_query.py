@@ -1,7 +1,9 @@
 import os
+
 import logging
-import polars as pl
 import numpy as np
+import polars as pl
+import typing as tp
 
 import modules.epa_query as epa
 import modules.logging as log
@@ -13,18 +15,29 @@ OUTPUT = "output/target_query"
 logging.getLogger(__name__)
 
 
-def read_jwst_cycle(filename: str) -> tuple[pl.DataFrame, int]:
-    """Reading individual cycle files."""
-    # ToDo: Not the best solution, very static
-    cycle_number = int(filename.split(".")[0][-1])
+def main():
+    # Simple logger
+    log.configure_logger(f"{OUTPUT}/target_query.log")
 
-    # Read file contents and add cycle indicator
-    jwst_frame = pl.read_csv(f"{INPUT}/{filename}")
-    jwst_frame = jwst_frame.with_columns(
-        pl.lit(cycle_number).alias("jwst_cycle")
-    )
+    # Start collecting query results
+    query_all_cycles = []
 
-    return jwst_frame, cycle_number
+    # Loop over individual cycle files:
+    for filename in sorted(os.listdir(INPUT)):
+        cycle_frame = handle_single_file(filename)
+
+        # Need to recast the data type of "system size"
+        cycle_frame = cycle_frame.with_columns(
+            pl.col("system_size").cast(pl.Float64).alias("system_size")
+        )
+
+        query_all_cycles.append(cycle_frame)
+
+    # Save a combination of all queries
+    query_all_cycles = pl.concat(query_all_cycles).sort(by="planet_name")
+    save_parameters(query_all_cycles, "all")
+
+    return
 
 
 def handle_single_file(filename: str) -> pl.DataFrame:
@@ -51,22 +64,18 @@ def handle_single_file(filename: str) -> pl.DataFrame:
     return combined_frame
 
 
-def main():
-    # Simple logger
-    log.configure_logger(f"{OUTPUT}/target_query.log")
+def read_jwst_cycle(filename: str) -> tuple[pl.DataFrame, int]:
+    """Reading individual cycle files."""
+    # ToDo: Not the best solution, very static
+    cycle_number = int(filename.split(".")[0][-1])
 
-    # Start collecting query results
-    query_all_cycles = []
+    # Read file contents and add cycle indicator
+    jwst_frame = pl.read_csv(f"{INPUT}/{filename}")
+    jwst_frame = jwst_frame.with_columns(
+        pl.lit(cycle_number).alias("jwst_cycle")
+    )
 
-    # Loop over individual cycle files:
-    for filename in sorted(os.listdir(INPUT)):
-        cycle_frame = handle_single_file(filename)
-        query_all_cycles.append(cycle_frame)
-
-    query_all_cycles = pl.concat(query_all_cycles)
-    print(query_all_cycles)
-
-    return
+    return jwst_frame, cycle_number
 
 
 def update_frame(
@@ -118,7 +127,7 @@ def update_rows(row_dict: dict, query_result: pl.DataFrame) -> dict:
 
 
 def save_parameters(
-        total_frame: pl.DataFrame, cycle_number: int
+        total_frame: pl.DataFrame, cycle_number: tp.Union[int, str]
         ) -> None:
     "Save several versions of the full query frame."
     # First, save the full data frame
