@@ -7,6 +7,7 @@ import numpy as np
 QUERY_PARAMETERS = {
     # Auxiliary information
     "pl_name": "planet_name", "sy_pnum": "system_size",
+    "hostname": "host_name", "pl_letter": "planet_id",
     # Planet parameters
     "pl_orbper": ("period", "day"), "pl_orbsmax": ("sma", "au"),
     "pl_rade": ("radius", "rearth"), "pl_bmasse": ("mass", "mearth"),
@@ -62,7 +63,7 @@ def construct_adql_query(
 def create_query_parameter_catalogue(parameter_list: dict) -> dict:
     """Create extended parameter catalogue to query the EPA."""
     # Define exceptions from the standardised name space
-    exceptions = ["pl_name", "sy_pnum"]
+    exceptions = ["pl_name", "sy_pnum", "hostname", "pl_letter"]
 
     # Return dictionary (this routine will make use of "|" to merge dicts)
     finalised_dictionary = {}

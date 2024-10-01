@@ -35,7 +35,7 @@ def handle_single_file(filename: str) -> pl.DataFrame:
 
     # Make unique list of planet names to query
     unique_names = cycle_frame.unique(
-        subset=["host_name", "planet_id"],
+        subset=["planet_name"],
         maintain_order=True
     )
     query_names = unique_names["planet_name"].to_numpy()
